@@ -4,15 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B35B4DD8-9D30-46ED-A973-352601D22AC9}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{6C58FE3E-3AF1-4408-BF30-DFB5ADBC3453}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SSystem.Data</RootNamespace>
-    <AssemblyName>SSystem.Data</AssemblyName>
+    <RootNamespace>System.Data.ConsoleTest</RootNamespace>
+    <AssemblyName>System.Data.ConsoleTest</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,8 +33,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="SSystem.Data, Version=5.0.0.39188, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SSystem.Data.5.0.0.39188\lib\net46\SSystem.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,18 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Databases\Database.DataReader.cs" />
-    <Compile Include="Databases\Database.ExecuteNonQuery.cs" />
-    <Compile Include="Databases\Database.Private.cs" />
-    <Compile Include="DataReaderExtension.cs" />
-    <Compile Include="DbCommandType.cs" />
-    <Compile Include="Database.cs" />
-    <Compile Include="DatabaseType.cs" />
-    <Compile Include="Mappings\ColumnAttribute.cs" />
+    <Compile Include="Models\AccNote.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Databases\Database.Parameters.cs" />
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

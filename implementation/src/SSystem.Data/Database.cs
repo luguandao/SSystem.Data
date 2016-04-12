@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -13,11 +14,16 @@ namespace SSystem.Data
     /// <summary>
     /// 数据操作类
     /// </summary>
-    public class Database : IDisposable
+    public partial class Database : IDisposable
     {
         public IDbConnection Connection { get; }
         protected DbProviderFactory m_DbProviderFactory;
         protected ConnectionStringSettings m_ConnectionStringSettings;
+        /// <summary>
+        /// 等待命令所需时间，以秒为单位
+        /// </summary>
+        public static int DefaultCommandTimeoutBySeconds = 30;
+        public string TagName { get; private set; }
         public Database(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -37,51 +43,34 @@ namespace SSystem.Data
             {
                 case "sqlconnection":
                     DatabaseType = DatabaseType.SqlServer;
+                    TagName = "@";
                     break;
+                case "oralceconnection":
+                    DatabaseType = DatabaseType.Oracle;
+                    TagName = ":";
+                    break;
+                default:
+                    throw new NotImplementedException(connTypeName);
             }
         }
 
         public DatabaseType DatabaseType { get; }
 
-        public IDbCommand CreateCommand(string commandText = null)
+        public IDbCommand CreateCommand(string commandText = null) => CreateCommand(commandText, null);
+        public IDbCommand CreateCommand(string commandText, IDictionary parameters)
         {
             var commd = Connection.CreateCommand();
-            commd.CommandText = commandText;
-            return commd;
-        }
-
-        public int ExecuteNonQuery(IDbCommand command)
-        {
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-
-            if (Connection.State == ConnectionState.Closed)
+            commd.CommandText = ReplaceProfixTag(commandText);
+            commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
+            if (parameters != null && parameters.Count > 0)
             {
-                Connection.Open();
+                var er = parameters.GetEnumerator();
+                while (er.MoveNext())
+                {
+                    commd.Parameters.Add(CreateIDataParameter(TagName + er.Key, er.Value, ParameterDirection.Input));
+                }
             }
-            command.Connection = Connection;
-            return command.ExecuteNonQuery();
-        }
-
-        public int ExecuteNonQuery(string sql)
-        {
-            var icom = CreateCommand();
-            icom.CommandText = sql;
-
-            return ExecuteNonQuery(icom);
-        }
-
-        public int ExecuteNonQuery(DataTable table)
-        {
-            var comm = CreateCommand();
-            comm.CommandText = "select * from " + table.TableName;
-            IDataAdapter adapt = CreateDbDataAdapter(comm, DbCommandType.AllCommand);
-
-            string oldName = table.TableName;
-            table.TableName = "Table";
-            int n = adapt.Update(table.DataSet);
-            table.TableName = oldName;
-            return n;
+            return commd;
         }
 
         public DataSet Query(IDbCommand selectCommand, bool allowSchema = true, string tableName = "table1")
@@ -154,47 +143,6 @@ namespace SSystem.Data
             return results;
         }
 
-        private void AssignValue<T>(IDataReader reader, PropertyInfo propertyInfo, T target)
-        {
-            if (reader == null)
-                throw new ArgumentNullException(nameof(reader));
-            if (propertyInfo == null)
-                throw new ArgumentNullException(nameof(propertyInfo));
-            if (target == null)
-                throw new ArgumentNullException(nameof(target));
-
-            var index = reader.GetOrdinal(propertyInfo.Name);
-            var value = reader.GetValue(index);
-            if (value == DBNull.Value)
-            {
-                value = null;
-            }
-
-            if (index > -1)
-            {
-                propertyInfo.SetValue(target, value);
-            }
-        }
-
-        public IDataReader CreateDataReader(IDbCommand selectCommand, CommandBehavior behavior = CommandBehavior.CloseConnection)
-        {
-            if (selectCommand == null)
-                throw new ArgumentNullException(nameof(selectCommand));
-
-            if (selectCommand.Connection == null)
-            {
-                selectCommand.Connection = Connection;
-            }
-            if (selectCommand.Connection.State == ConnectionState.Closed)
-            {
-                selectCommand.Connection.Open();
-            }
-            return selectCommand.ExecuteReader(behavior);
-        }
-
-        public IDataReader CreateDataReader(string selectSql, CommandBehavior behavior = CommandBehavior.CloseConnection) =>
-            CreateDataReader(CreateCommand(selectSql), behavior);
-
         public IDbDataAdapter CreateDbDataAdapter(IDbCommand selectCommand, DbCommandType type)
         {
             var adapt = m_DbProviderFactory.CreateDataAdapter();
@@ -216,23 +164,13 @@ namespace SSystem.Data
             return adapt;
         }
 
+
         public void Dispose()
         {
             Connection.Close();
             Connection.Dispose();
         }
 
-        private IDbConnection CreateConnection(string connectionString)
-        {
-            if (m_DbProviderFactory == null)
-            {
-                m_DbProviderFactory = CreateDbProviderFactory();
-            }
-            IDbConnection icon = m_DbProviderFactory.CreateConnection();
-            icon.ConnectionString = connectionString;
-            return icon;
-        }
 
-        private DbProviderFactory CreateDbProviderFactory() => DbProviderFactories.GetFactory(m_ConnectionStringSettings.ProviderName);
     }
 }
