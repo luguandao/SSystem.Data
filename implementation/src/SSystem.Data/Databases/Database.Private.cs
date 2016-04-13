@@ -12,7 +12,7 @@ namespace SSystem.Data
 {
     public partial class Database
     {
-        private void AssignValue<T>(IDataReader reader, PropertyInfo propertyInfo, T target)
+        private void AssignValue<T>(IDataReader reader, IEnumerable<string> allFieldNames, PropertyInfo propertyInfo, T target)
         {
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
@@ -28,17 +28,21 @@ namespace SSystem.Data
                 col = attr.ColumnName;
             }
 
-            var index = reader.GetOrdinal(col);
-            var value = reader.GetValue(index);
-            if (value == DBNull.Value)
+            if(allFieldNames.Where(a=>a.Equals(col,StringComparison.InvariantCultureIgnoreCase)).Any())
             {
-                value = null;
+                var index = reader.GetOrdinal(col);
+                var value = reader.GetValue(index);
+                if (value == DBNull.Value)
+                {
+                    value = null;
+                }
+
+                if (index > -1)
+                {
+                    propertyInfo.SetValue(target, value);
+                }
             }
 
-            if (index > -1)
-            {
-                propertyInfo.SetValue(target, value);
-            }
         }
 
         private IDbConnection CreateConnection(string connectionString)
@@ -52,7 +56,7 @@ namespace SSystem.Data
             return icon;
         }
 
-        private DbProviderFactory CreateDbProviderFactory() => DbProviderFactories.GetFactory(m_ConnectionStringSettings.ProviderName);
+        private DbProviderFactory CreateDbProviderFactory() => DbProviderFactories.GetFactory(m_ProviderName);
 
         private string ReplaceProfixTag(string sql)
         {
@@ -60,6 +64,17 @@ namespace SSystem.Data
                 return sql;
             sql = sql.Replace("@", TagName);
             return sql;
+        }
+
+        private IEnumerable<string> GetNames(IDataReader reader)
+        {
+            var names = new List<string>();
+            int count = reader.FieldCount;
+            for (int i = 0; i < count; i++)
+            {
+                names.Add(reader.GetName(i));
+            }
+            return names;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace SSystem.Data
 
             if (selectCommand.Connection == null)
             {
-                selectCommand.Connection = Connection;
+                selectCommand.Connection = CurrentConnection;
             }
             if (selectCommand.Connection.State == ConnectionState.Closed)
             {

@@ -16,29 +16,47 @@ namespace SSystem.Data
     /// </summary>
     public partial class Database : IDisposable
     {
-        public IDbConnection Connection { get; }
-        protected DbProviderFactory m_DbProviderFactory;
-        protected ConnectionStringSettings m_ConnectionStringSettings;
+        /// <summary>
+        /// 获取当前数据库连接
+        /// </summary>
+        public IDbConnection CurrentConnection { get; }
+        private DbProviderFactory m_DbProviderFactory;
+        private string m_ProviderName;
         /// <summary>
         /// 等待命令所需时间，以秒为单位
         /// </summary>
         public static int DefaultCommandTimeoutBySeconds = 30;
+        /// <summary>
+        /// 获取此数据库类型的前缀标记符号
+        /// </summary>
         public string TagName { get; private set; }
-        public Database(string name)
+        /// <summary>
+        /// 数据操作类的构造函数
+        /// </summary>
+        /// <param name="name">配置数据库连接名称</param>
+        public Database(string name) : this(ConfigurationManager.ConnectionStrings[name].ConnectionString,
+            ConfigurationManager.ConnectionStrings[name].ProviderName)
         {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(name);
-            m_ConnectionStringSettings = ConfigurationManager.ConnectionStrings[name];
+        }
 
-            if (m_ConnectionStringSettings == null)
-            {
-                throw new SettingsPropertyNotFoundException("cannot found connection string");
-            }
-            Connection = CreateConnection(m_ConnectionStringSettings.ConnectionString);
-            if (Connection == null)
+        /// <summary>
+        /// 数据操作类的构造函数
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="providerName"></param>
+        public Database(string connectionString, string providerName)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
+            if (string.IsNullOrEmpty(providerName))
+                throw new ArgumentNullException(nameof(providerName));
+
+            m_ProviderName = providerName;
+            CurrentConnection = CreateConnection(connectionString);
+            if (CurrentConnection == null)
                 throw new Exception("cannot initial connection");
 
-            var connTypeName = Connection.GetType().Name.ToLower();
+            var connTypeName = CurrentConnection.GetType().Name.ToLower();
             switch (connTypeName)
             {
                 case "sqlconnection":
@@ -54,12 +72,27 @@ namespace SSystem.Data
             }
         }
 
+        /// <summary>
+        /// 获取当前数据库类型
+        /// </summary>
         public DatabaseType DatabaseType { get; }
 
+        /// <summary>
+        /// 生成Command
+        /// </summary>
+        /// <param name="commandText"></param>
+        /// <returns></returns>
         public IDbCommand CreateCommand(string commandText = null) => CreateCommand(commandText, null);
+
+        /// <summary>
+        /// 生成Command
+        /// </summary>
+        /// <param name="commandText"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         public IDbCommand CreateCommand(string commandText, IDictionary parameters)
         {
-            var commd = Connection.CreateCommand();
+            var commd = CurrentConnection.CreateCommand();
             commd.CommandText = ReplaceProfixTag(commandText);
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
             if (parameters != null && parameters.Count > 0)
@@ -73,6 +106,13 @@ namespace SSystem.Data
             return commd;
         }
 
+        /// <summary>
+        /// 数据查询
+        /// </summary>
+        /// <param name="selectCommand"></param>
+        /// <param name="allowSchema"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public DataSet Query(IDbCommand selectCommand, bool allowSchema = true, string tableName = "table1")
         {
             if (selectCommand == null)
@@ -90,6 +130,13 @@ namespace SSystem.Data
             return result;
         }
 
+        /// <summary>
+        /// 数据查询
+        /// </summary>
+        /// <param name="selectSql"></param>
+        /// <param name="allowSchema"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
         public DataSet Query(string selectSql, bool allowSchema = true, string tableName = "table1")
         {
             var selectCommand = CreateCommand();
@@ -97,44 +144,44 @@ namespace SSystem.Data
             return Query(selectCommand, allowSchema, tableName);
         }
 
-        public T GetObject<T>(string selectSql) where T : class
-        {
-            if (string.IsNullOrEmpty(selectSql))
-                throw new ArgumentNullException(nameof(selectSql));
-
-            T result = Activator.CreateInstance<T>();
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            using (var reader = CreateDataReader(selectSql))
-            {
-                if (reader.Read())
-                {
-                    foreach (var prop in properties)
-                    {
-                        AssignValue<T>(reader, prop, result);
-                    }
-                }
-            }
-            return result;
-        }
-
+        /// <summary>
+        /// 数据查询，并把查询结果转化成实体类
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="selectSql"></param>
+        /// <returns></returns>
         public IEnumerable<T> GetObjectList<T>(string selectSql) where T : class
         {
             if (string.IsNullOrEmpty(selectSql))
                 throw new ArgumentNullException(nameof(selectSql));
 
+            return GetObjectList<T>(CreateCommand(selectSql));
+        }
+
+        /// <summary>
+        /// 数据查询，并把查询结果转化成实体类
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="selectCommand"></param>
+        /// <returns></returns>
+        public IEnumerable<T> GetObjectList<T>(IDbCommand selectCommand) where T : class
+        {
+            if (selectCommand == null)
+                throw new ArgumentNullException(nameof(selectCommand));
             List<T> results = new List<T>();
 
             Type type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
-            using (var reader = CreateDataReader(selectSql))
+            using (var reader = CreateDataReader(selectCommand))
             {
+                var fieldNames = GetNames(reader);
                 while (reader.Read())
                 {
                     T item = Activator.CreateInstance<T>();
                     foreach (var prop in properties)
                     {
 
-                        AssignValue(reader, prop, item);
+                        AssignValue(reader, fieldNames, prop, item);
 
                     }
                     results.Add(item);
@@ -143,6 +190,12 @@ namespace SSystem.Data
             return results;
         }
 
+        /// <summary>
+        /// 生成DbDataAdapter
+        /// </summary>
+        /// <param name="selectCommand"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public IDbDataAdapter CreateDbDataAdapter(IDbCommand selectCommand, DbCommandType type)
         {
             var adapt = m_DbProviderFactory.CreateDataAdapter();
@@ -165,10 +218,13 @@ namespace SSystem.Data
         }
 
 
+        /// <summary>
+        /// 释放数据库连接
+        /// </summary>
         public void Dispose()
         {
-            Connection.Close();
-            Connection.Dispose();
+            CurrentConnection.Close();
+            CurrentConnection.Dispose();
         }
 
 

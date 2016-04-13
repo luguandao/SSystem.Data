@@ -14,11 +14,11 @@ namespace SSystem.Data
             if (command == null)
                 throw new ArgumentNullException(nameof(command));
 
-            if (Connection.State == ConnectionState.Closed)
+            if (CurrentConnection.State == ConnectionState.Closed)
             {
-                Connection.Open();
+                CurrentConnection.Open();
             }
-            command.Connection = Connection;
+            command.Connection = CurrentConnection;
             return command.ExecuteNonQuery();
         }
 

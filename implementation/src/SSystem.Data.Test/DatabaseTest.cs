@@ -16,7 +16,7 @@ namespace SSystem.Data.Test
         {
             using (var db = new Database(_DbName))
             {
-                db.Connection.Open();
+                db.CurrentConnection.Open();
 
                 Assert.Equal<DatabaseType>(DatabaseType.SqlServer, db.DatabaseType);
             }
@@ -30,7 +30,7 @@ namespace SSystem.Data.Test
                 string text = "select * from test";
                 var commd = db.CreateCommand(text);
                 Assert.Equal(text, commd.CommandText);
-                Assert.Equal(db.Connection, commd.Connection);
+                Assert.Equal(db.CurrentConnection, commd.Connection);
             }
         }
 
@@ -116,7 +116,7 @@ namespace SSystem.Data.Test
         {
             using (var db = new Database(_DbName))
             {
-                var note = db.GetObject<AccNote>("select * from AccNote");
+                var note = db.GetObjectList<AccNote>("select * from AccNote").First();
                 Assert.True(note.Id > 0);
             }
         }
