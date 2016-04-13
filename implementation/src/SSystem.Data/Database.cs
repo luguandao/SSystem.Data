@@ -106,44 +106,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        /// <summary>
-        /// 数据查询
-        /// </summary>
-        /// <param name="selectCommand"></param>
-        /// <param name="allowSchema"></param>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public DataSet Query(IDbCommand selectCommand, bool allowSchema = true, string tableName = "table1")
-        {
-            if (selectCommand == null)
-                throw new ArgumentNullException(nameof(selectCommand));
-
-            IDbDataAdapter adapt = CreateDbDataAdapter(selectCommand, DbCommandType.SelectCommand);
-            var result = new DataSet();
-            if (allowSchema)
-            {
-                adapt.FillSchema(result, SchemaType.Source);
-            }
-            adapt.Fill(result);
-
-            result.Tables[0].TableName = tableName;
-            return result;
-        }
-
-        /// <summary>
-        /// 数据查询
-        /// </summary>
-        /// <param name="selectSql"></param>
-        /// <param name="allowSchema"></param>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public DataSet Query(string selectSql, bool allowSchema = true, string tableName = "table1")
-        {
-            var selectCommand = CreateCommand();
-            selectCommand.CommandText = selectSql;
-            return Query(selectCommand, allowSchema, tableName);
-        }
-
+        
         /// <summary>
         /// 数据查询，并把查询结果转化成实体类
         /// </summary>
@@ -172,7 +135,7 @@ namespace SSystem.Data
 
             Type type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
-            using (var reader = CreateDataReader(selectCommand))
+            using (var reader = ExecuteReader(selectCommand))
             {
                 var fieldNames = GetNames(reader);
                 while (reader.Read())

@@ -45,6 +45,7 @@
     <Compile Include="Databases\Database.DataReader.cs" />
     <Compile Include="Databases\Database.ExecuteNonQuery.cs" />
     <Compile Include="Databases\Database.Private.cs" />
+    <Compile Include="Databases\Database.Query.cs" />
     <Compile Include="DataReaderExtension.cs" />
     <Compile Include="DbCommandType.cs" />
     <Compile Include="Database.cs" />

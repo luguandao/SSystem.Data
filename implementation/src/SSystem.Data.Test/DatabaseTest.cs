@@ -100,7 +100,7 @@ namespace SSystem.Data.Test
         {
             using (var db = new Database(_DbName))
             {
-                using (var reader = db.CreateDataReader("select * from AccNote"))
+                using (var reader = db.ExecuteReader("select * from AccNote"))
                 {
                     while (reader.Read())
                     {
