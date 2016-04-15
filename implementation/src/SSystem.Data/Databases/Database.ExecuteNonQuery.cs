@@ -32,6 +32,7 @@ namespace SSystem.Data
         /// 执行非查询语句
         /// </summary>
         /// <param name="commandText"></param>
+        /// <param name="commandType"></param>
         /// <returns></returns>
         public int ExecuteNonQuery(string commandText, CommandType commandType = CommandType.Text)
         {
