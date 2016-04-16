@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Databases\Database.ExecuteScalar.cs" />
     <Compile Include="SqlServerDatabaseCreator.cs" />
     <Compile Include="Databases\Database.DataReader.cs" />
     <Compile Include="Databases\Database.ExecuteNonQuery.cs" />

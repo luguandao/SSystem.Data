@@ -120,6 +120,16 @@ namespace SSystem.Data.Test
                 Assert.True(note.Id > 0);
             }
         }
+
+        [Fact]
+        public void TestExecuteScalar()
+        {
+            using (var db = new Database(_DbName))
+            {
+                var id = db.ExecuteScalar<int>("select ssId from AccNote");
+                Assert.True(id > 0);
+            }
+        }
     }
 
     public class AccNote
