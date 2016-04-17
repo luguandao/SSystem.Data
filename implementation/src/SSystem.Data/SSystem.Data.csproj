@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Databases\Database.ExecuteScalar.cs" />
+    <Compile Include="Databases\Database.GetFirstColumn.cs" />
     <Compile Include="SqlServerDatabaseCreator.cs" />
     <Compile Include="Databases\Database.DataReader.cs" />
     <Compile Include="Databases\Database.ExecuteNonQuery.cs" />

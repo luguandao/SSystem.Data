@@ -23,7 +23,7 @@ namespace SSystem.Data
 
             if (selectCommand.Connection == null)
             {
-                selectCommand.Connection = CurrentConnection;
+                selectCommand.Connection = Connection;
             }
             if (selectCommand.Connection.State == ConnectionState.Closed)
             {
@@ -53,7 +53,7 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(selectCommand));
             if (selectCommand.Connection == null)
             {
-                selectCommand.Connection = CurrentConnection;
+                selectCommand.Connection = Connection;
             }
             if (selectCommand.Connection.State == ConnectionState.Closed)
             {

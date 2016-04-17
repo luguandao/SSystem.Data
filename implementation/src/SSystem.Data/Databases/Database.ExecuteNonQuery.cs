@@ -20,11 +20,10 @@ namespace SSystem.Data
             if (command == null)
                 throw new ArgumentNullException(nameof(command));
 
-            if (CurrentConnection.State == ConnectionState.Closed)
+            if (Connection.State == ConnectionState.Closed)
             {
-                CurrentConnection.Open();
+                Connection.Open();
             }
-            command.Connection = CurrentConnection;
             return command.ExecuteNonQuery();
         }
 
@@ -69,11 +68,11 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(command));
 
             DbCommand comm = (DbCommand)command;
-            if (CurrentConnection.State == ConnectionState.Closed)
+            if (Connection.State == ConnectionState.Closed)
             {
-                CurrentConnection.Open();
+                Connection.Open();
             }
-            comm.Connection = CurrentConnection as DbConnection;
+            comm.Connection = Connection as DbConnection;
             return await comm.ExecuteNonQueryAsync();
         }
 

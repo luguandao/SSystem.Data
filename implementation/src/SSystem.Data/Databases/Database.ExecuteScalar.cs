@@ -18,13 +18,18 @@ namespace SSystem.Data
         /// <returns></returns>
         public T ExecuteScalar<T>(IDbCommand selectCommand)
         {
+            var oValue = ExecuteScalar(selectCommand);
+            return ConvertToT<T>(oValue);
+        }
+
+        public object ExecuteScalar(IDbCommand selectCommand)
+        {
             if (selectCommand.Connection.State == ConnectionState.Closed)
             {
                 selectCommand.Connection.Open();
             }
 
-            var oValue = selectCommand.ExecuteScalar();
-            return ConvertToT<T>(oValue);
+            return selectCommand.ExecuteScalar();
         }
 
         /// <summary>

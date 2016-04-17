@@ -19,7 +19,8 @@ namespace SSystem.Data
         /// <summary>
         /// 获取当前数据库连接
         /// </summary>
-        public IDbConnection CurrentConnection { get; }
+        public IDbConnection Connection { get; }
+        public IDbTransaction Transaction { get; }
         private DbProviderFactory m_DbProviderFactory;
         private string m_ProviderName;
         /// <summary>
@@ -34,8 +35,8 @@ namespace SSystem.Data
         /// 数据操作类的构造函数
         /// </summary>
         /// <param name="name">配置数据库连接名称</param>
-        public Database(string name) : this(ConfigurationManager.ConnectionStrings[name].ConnectionString,
-            ConfigurationManager.ConnectionStrings[name].ProviderName)
+        public Database(string name, bool isTransaction = false) : this(ConfigurationManager.ConnectionStrings[name].ConnectionString,
+            ConfigurationManager.ConnectionStrings[name].ProviderName, isTransaction)
         {
         }
 
@@ -44,7 +45,7 @@ namespace SSystem.Data
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="providerName"></param>
-        public Database(string connectionString, string providerName)
+        public Database(string connectionString, string providerName, bool isTransaction = false)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
@@ -52,11 +53,17 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(providerName));
 
             m_ProviderName = providerName;
-            CurrentConnection = CreateConnection(connectionString);
-            if (CurrentConnection == null)
+            Connection = CreateConnection(connectionString);
+            if (Connection == null)
                 throw new Exception("cannot initial connection");
 
-            var connTypeName = CurrentConnection.GetType().Name.ToLower();
+            if (isTransaction)
+            {
+                Connection.Open();
+                Transaction = Connection.BeginTransaction();
+            }
+
+            var connTypeName = Connection.GetType().Name.ToLower();
             switch (connTypeName)
             {
                 case "sqlconnection":
@@ -92,7 +99,8 @@ namespace SSystem.Data
         /// <returns></returns>
         public IDbCommand CreateCommand(string commandText, IDictionary parameters)
         {
-            var commd = CurrentConnection.CreateCommand();
+            var commd = Connection.CreateCommand();
+            commd.Transaction = Transaction;
             commd.CommandText = ReplaceProfixTag(commandText);
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
             if (parameters != null && parameters.Count > 0)
@@ -106,7 +114,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        
+
         /// <summary>
         /// 数据查询，并把查询结果转化成实体类
         /// </summary>
@@ -186,8 +194,12 @@ namespace SSystem.Data
         /// </summary>
         public void Dispose()
         {
-            CurrentConnection.Close();
-            CurrentConnection.Dispose();
+            if (Transaction != null)
+            {
+                Transaction.Dispose();
+            }
+            Connection.Close();
+            Connection.Dispose();
         }
 
 

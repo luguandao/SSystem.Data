@@ -13,51 +13,15 @@ namespace System.Data.ConsoleTest
     {
         static void Main(string[] args)
         {
-            //            using (var context = new Database("test"))
-            //            {
-            ////                Console.WriteLine(@"create DATABASE test01
-            ////on primary
-            ////(
-            ////name='test01_data',
-            ////filename='C:\temp\test01_data.mdf',
-            ////size=5mb,
-            ////maxsize=100mb,
-            ////filegrowth=15%
-            ////)
-            ////log on
-            ////(
-            ////name='test01_log',
-            ////filename='c:\temp\test01_log.ldf',
-            ////size=2mb,
-            ////filegrowth=1mb
-            ////)
-            ////");
-            ////                context.ExecuteNonQuery(@"create DATABASE test01
-            ////on primary
-            ////(
-            ////name='test01_data',
-            ////filename='C:\temp\test01_data.mdf',
-            ////size=5mb,
-            ////maxsize=100mb,
-            ////filegrowth=15%
-            ////)
-            ////log on
-            ////(
-            ////name='test01_log',
-            ////filename='c:\temp\test01_log.ldf',
-            ////size=2mb,
-            ////filegrowth=1mb
-            ////)
-            ////");
 
-
-            //            }
-
-
-            //        }
-
-            var creater = new SqlServerDatabaseCreator("test01", AppDomain.CurrentDomain.BaseDirectory);
-            creater.Create("test");
+            using (var db = new Database("ZDATA"))
+            {
+                System.Diagnostics.Stopwatch sw = new Stopwatch();
+                sw.Start();
+                var id = db.ExecuteScalar<int>(db.CreateCommand("select ssID from AccNote"));
+                sw.Stop();
+                Console.WriteLine(sw.ElapsedMilliseconds);
+            }
         }
     }
 }

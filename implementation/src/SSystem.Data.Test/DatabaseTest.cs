@@ -16,7 +16,7 @@ namespace SSystem.Data.Test
         {
             using (var db = new Database(_DbName))
             {
-                db.CurrentConnection.Open();
+                db.Connection.Open();
 
                 Assert.Equal<DatabaseType>(DatabaseType.SqlServer, db.DatabaseType);
             }
@@ -30,7 +30,7 @@ namespace SSystem.Data.Test
                 string text = "select * from test";
                 var commd = db.CreateCommand(text);
                 Assert.Equal(text, commd.CommandText);
-                Assert.Equal(db.CurrentConnection, commd.Connection);
+                Assert.Equal(db.Connection, commd.Connection);
             }
         }
 
@@ -128,6 +128,28 @@ namespace SSystem.Data.Test
             {
                 var id = db.ExecuteScalar<int>("select ssId from AccNote");
                 Assert.True(id > 0);
+            }
+        }
+
+        [Fact]
+        public void TestExecuteScalarObject()
+        {
+            System.Diagnostics.Debug.WriteLine("start testing");
+            System.Diagnostics.Debug.Flush();
+            using (var db = new Database(_DbName))
+            {
+                object id = db.ExecuteScalar(db.CreateCommand("select ssId from AccNote"));
+                Assert.True(Convert.ToInt32(id)>0);
+            }
+        }
+
+        [Fact]
+        public void TestGetFirstColumn()
+        {
+            using (var db = new Database(_DbName))
+            {
+                var list = db.GetFirstColumn("select * from AccNote");
+                Assert.True(list.Count > 0);
             }
         }
     }
