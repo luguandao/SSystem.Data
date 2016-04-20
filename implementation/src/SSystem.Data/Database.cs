@@ -108,7 +108,7 @@ namespace SSystem.Data
                 var er = parameters.GetEnumerator();
                 while (er.MoveNext())
                 {
-                    commd.Parameters.Add(CreateIDataParameter(TagName + er.Key, er.Value, ParameterDirection.Input));
+                    commd.Parameters.Add(CreateIDataParameter(TagName + er.Key, er.Value == null ? DBNull.Value : er.Value, ParameterDirection.Input));
                 }
             }
             return commd;
