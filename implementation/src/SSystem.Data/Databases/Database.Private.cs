@@ -28,7 +28,7 @@ namespace SSystem.Data
                 col = attr.ColumnName;
             }
 
-            if(allFieldNames.Where(a=>a.Equals(col,StringComparison.InvariantCultureIgnoreCase)).Any())
+            if (allFieldNames.Where(a => a.Equals(col, StringComparison.InvariantCultureIgnoreCase)).Any())
             {
                 var index = reader.GetOrdinal(col);
                 var value = reader.GetValue(index);
@@ -39,7 +39,16 @@ namespace SSystem.Data
 
                 if (index > -1)
                 {
-                    propertyInfo.SetValue(target, value);
+                    //propertyInfo.PropertyType.BaseType.Name
+                    if (propertyInfo.PropertyType.IsEnum)
+                    {
+
+                        propertyInfo.SetValue(target, Enum.ToObject(propertyInfo.PropertyType, value));
+                    }
+                    else
+                    {
+                        propertyInfo.SetValue(target, value);
+                    }
                 }
             }
 
