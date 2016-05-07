@@ -13,8 +13,8 @@ namespace System.Data.ConsoleTest
     {
         static void Main(string[] args)
         {
-
-            using (var db = new Database("ZDATA"))
+            DatabaseFactory.AddProviderFactory(System.Data.SqlClient.SqlClientFactory.Instance, DatabaseType.SqlServer);
+            using (var db = DatabaseFactory.Create("ZDATA"))
             {
                 System.Diagnostics.Stopwatch sw = new Stopwatch();
                 sw.Start();

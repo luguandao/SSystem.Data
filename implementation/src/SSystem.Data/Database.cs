@@ -19,8 +19,8 @@ namespace SSystem.Data
         /// <summary>
         /// 获取当前数据库连接
         /// </summary>
-        public IDbConnection Connection { get; }
-        public IDbTransaction Transaction { get; }
+        public IDbConnection Connection { get; private set; }
+        public IDbTransaction Transaction { get; private set; }
         private DbProviderFactory m_DbProviderFactory;
         private string m_ProviderName;
         /// <summary>
@@ -35,7 +35,7 @@ namespace SSystem.Data
         /// 数据操作类的构造函数
         /// </summary>
         /// <param name="name">配置数据库连接名称</param>
-        public Database(string name, bool isTransaction = false) : this(ConfigurationManager.ConnectionStrings[name].ConnectionString,
+        internal Database(string name, bool isTransaction = false) : this(ConfigurationManager.ConnectionStrings[name].ConnectionString,
             ConfigurationManager.ConnectionStrings[name].ProviderName, isTransaction)
         {
         }
@@ -45,7 +45,8 @@ namespace SSystem.Data
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="providerName"></param>
-        public Database(string connectionString, string providerName, bool isTransaction = false)
+        /// <param name="isTransaction"></param>
+        internal Database(string connectionString, string providerName, bool isTransaction = false)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
@@ -54,6 +55,17 @@ namespace SSystem.Data
 
             m_ProviderName = providerName;
             Connection = CreateConnection(connectionString);
+            InitByConnection(Connection, isTransaction);
+        }
+
+        internal Database(IDbConnection icon, bool isTransaction)
+        {
+            InitByConnection(icon, isTransaction);
+        }
+
+        private void InitByConnection(IDbConnection icon, bool isTransaction)
+        {
+            Connection = icon;
             if (Connection == null)
                 throw new Exception("cannot initial connection");
 
@@ -74,6 +86,12 @@ namespace SSystem.Data
                     DatabaseType = DatabaseType.Oracle;
                     TagName = ":";
                     break;
+                case "sqliteconnection":
+                    DatabaseType = DatabaseType.Sqlite;
+                    break;
+                case "mysqlconnection":
+                    DatabaseType = DatabaseType.MySql;
+                    break;
                 default:
                     throw new NotImplementedException(connTypeName);
             }
@@ -82,7 +100,7 @@ namespace SSystem.Data
         /// <summary>
         /// 获取当前数据库类型
         /// </summary>
-        public DatabaseType DatabaseType { get; }
+        public DatabaseType DatabaseType { get; private set; }
 
         /// <summary>
         /// 生成Command

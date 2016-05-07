@@ -11,10 +11,15 @@ namespace SSystem.Data.Test
     public class DatabaseTest
     {
         private const string _DbName = "ZDATA";
+
+        static DatabaseTest()
+        {
+            DatabaseFactory.AddProviderFactory(System.Data.SqlClient.SqlClientFactory.Instance, DatabaseType.SqlServer);
+        }
         [Fact]
         public void TestConnection()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 db.Connection.Open();
 
@@ -25,7 +30,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestCreateCommand()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 string text = "select * from test";
                 var commd = db.CreateCommand(text);
@@ -37,7 +42,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestCreateCommand2()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 string text = "select * from AccNote where ssID=@id";
                 var commd = db.CreateCommand(text, new Dictionary<string, int>() {
@@ -52,7 +57,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestQuery()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var ds = db.Query("select * from AccNote", true, "mytable");
                 Assert.Equal(18, ds.Tables[0].Rows.Count);
@@ -63,7 +68,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestQuery2()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var ds = db.Query(db.CreateCommand("select * from AccNote"));
                 Assert.Equal(18, ds.Tables[0].Rows.Count);
@@ -74,7 +79,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestExecuteNonQuery()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var n = db.ExecuteNonQuery("update AccNote set mNote='存入银行单证号码：' where ssID=93");
                 Assert.Equal(1, n);
@@ -84,7 +89,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestExecuteNonQuery2()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var ds = db.Query("select * from AccNote");
                 var dt = ds.Tables[0];
@@ -98,7 +103,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestCreateDataReader()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 using (var reader = db.ExecuteReader("select * from AccNote"))
                 {
@@ -114,7 +119,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestGetObject()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var note = db.GetObjectList<AccNote>("select * from AccNote").First();
                 Assert.True(note.Id > 0);
@@ -124,7 +129,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestExecuteScalar()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var id = db.ExecuteScalar<int>("select ssId from AccNote");
                 Assert.True(id > 0);
@@ -136,7 +141,7 @@ namespace SSystem.Data.Test
         {
             System.Diagnostics.Debug.WriteLine("start testing");
             System.Diagnostics.Debug.Flush();
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 object id = db.ExecuteScalar(db.CreateCommand("select ssId from AccNote"));
                 Assert.True(Convert.ToInt32(id)>0);
@@ -146,7 +151,7 @@ namespace SSystem.Data.Test
         [Fact]
         public void TestGetFirstColumn()
         {
-            using (var db = new Database(_DbName))
+            using (var db = DatabaseFactory.Create(_DbName))
             {
                 var list = db.GetFirstColumn("select * from AccNote");
                 Assert.True(list.Count > 0);
