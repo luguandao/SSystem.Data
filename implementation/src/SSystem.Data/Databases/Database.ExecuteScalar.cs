@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -22,6 +23,12 @@ namespace SSystem.Data
             return ConvertToT<T>(oValue);
         }
 
+        public async Task<T> ExecuteScalarAsync<T>(IDbCommand selectCommand)
+        {
+            var oValue = await ExecuteScalarAsync(selectCommand);
+            return ConvertToT<T>(oValue);
+        }
+
         public object ExecuteScalar(IDbCommand selectCommand)
         {
             if (selectCommand.Connection.State == ConnectionState.Closed)
@@ -30,6 +37,15 @@ namespace SSystem.Data
             }
 
             return selectCommand.ExecuteScalar();
+        }
+
+        public async Task<object> ExecuteScalarAsync(IDbCommand selectCommand)
+        {
+            if (selectCommand.Connection.State == ConnectionState.Closed)
+            {
+                selectCommand.Connection.Open();
+            }
+            return await ((DbCommand)selectCommand).ExecuteScalarAsync();
         }
 
         /// <summary>
@@ -42,6 +58,8 @@ namespace SSystem.Data
         {
             return ExecuteScalar<T>(CreateCommand(selectSql));
         }
+
+
 
         /// <summary>
         /// 类型转换

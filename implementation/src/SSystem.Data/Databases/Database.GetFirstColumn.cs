@@ -46,5 +46,43 @@ namespace SSystem.Data
         {
             return GetFirstColumn(CreateCommand(selectSql));
         }
+
+        public async Task<IList<string>> GetFirstColumnAsync(IDbCommand selectCommand)
+        {
+            if (selectCommand == null)
+                throw new ArgumentNullException(nameof(selectCommand));
+
+            var columnValue = new List<string>();
+            using (var reader = await ExecuteReaderAsync(selectCommand))
+            {
+                while (reader.Read())
+                {
+                    object oValue = reader[0];
+                    switch (oValue.GetType().Name.ToLower())
+                    {
+                        case "byte[]":
+                            byte[] btmp = reader[0] as byte[];
+                            StringBuilder sbb = new StringBuilder();
+                            sbb.Append("0x");
+                            foreach (byte b in btmp)
+                            {
+                                sbb.Append(b.ToString("D2"));
+                            }
+                            columnValue.Add(sbb.ToString());
+                            break;
+                        default:
+                            columnValue.Add(Convert.ToString(reader[0]));
+                            break;
+                    }
+                }
+                reader.Close();
+            }
+            return columnValue;
+        }
+
+        public async Task<IList<string>> GetFirstColumnAsync(string selectSql)
+        {
+            return await GetFirstColumnAsync(CreateCommand(selectSql));
+        }
     }
 }
