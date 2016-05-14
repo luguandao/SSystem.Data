@@ -12,7 +12,7 @@ namespace SSystem.Data
 	{
 		public IDataParameter CreateIDataParameter(string name, object value, ParameterDirection direction = ParameterDirection.Input,int size=0)
 		{
-            DbParameter para = m_DbProviderFactory.CreateParameter();
+            DbParameter para = DbProviderFactory.CreateParameter();
             para.ParameterName = name;
             para.Direction = direction;
             para.Value = value;

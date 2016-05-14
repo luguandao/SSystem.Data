@@ -24,7 +24,10 @@ namespace SSystem.Data
 
             var conn = _ProviderFactories[type].CreateConnection();
             conn.ConnectionString = GetConnectionString(connectionStringName);
-            return new Database(conn, isTransaction);
+
+            var database = new Database(conn, isTransaction);
+            database.DbProviderFactory = _ProviderFactories[type];
+            return database;
         }
 
         public static Database Create(string connectionStringName, bool isTransaction=false)

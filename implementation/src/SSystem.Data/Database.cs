@@ -21,7 +21,7 @@ namespace SSystem.Data
         /// </summary>
         public IDbConnection Connection { get; private set; }
         public IDbTransaction Transaction { get; private set; }
-        private DbProviderFactory m_DbProviderFactory;
+        internal DbProviderFactory DbProviderFactory;
         private string m_ProviderName;
         /// <summary>
         /// 等待命令所需时间，以秒为单位
@@ -143,9 +143,9 @@ namespace SSystem.Data
         /// <returns></returns>
         public IDbDataAdapter CreateDbDataAdapter(IDbCommand selectCommand, DbCommandType type)
         {
-            var adapt = m_DbProviderFactory.CreateDataAdapter();
+            var adapt = DbProviderFactory.CreateDataAdapter();
             adapt.SelectCommand = selectCommand as DbCommand;
-            DbCommandBuilder builder = m_DbProviderFactory.CreateCommandBuilder();
+            DbCommandBuilder builder = DbProviderFactory.CreateCommandBuilder();
             builder.DataAdapter = adapt;
 
             adapt.InsertCommand = ((type & DbCommandType.InsertCommand) == DbCommandType.InsertCommand) ?

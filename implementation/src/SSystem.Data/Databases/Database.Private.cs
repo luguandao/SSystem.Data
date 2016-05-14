@@ -56,11 +56,11 @@ namespace SSystem.Data
 
         private IDbConnection CreateConnection(string connectionString)
         {
-            if (m_DbProviderFactory == null)
+            if (DbProviderFactory == null)
             {
-                m_DbProviderFactory = CreateDbProviderFactory();
+                DbProviderFactory = CreateDbProviderFactory();
             }
-            IDbConnection icon = m_DbProviderFactory.CreateConnection();
+            IDbConnection icon = DbProviderFactory.CreateConnection();
             icon.ConnectionString = connectionString;
             return icon;
         }
