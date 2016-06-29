@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,8 +37,19 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(selectCommand));
             var results = new List<T>();
 
-            Type type = typeof(T);
-            PropertyInfo[] properties = type.GetProperties();
+            string key = typeof(T).FullName;
+            var cachedPrperties = MemoryCache.Default.Get(key);
+            PropertyInfo[] properties;
+            if (cachedPrperties == null)
+            {
+                Type type = typeof(T);
+                properties = type.GetProperties();
+                MemoryCache.Default.Add(key, properties, DateTime.Now.AddMinutes(TimeoutOfCaching));
+            }
+            else
+            {
+                properties = MemoryCache.Default.Get(key) as PropertyInfo[];
+            }
             using (var reader = ExecuteReader(selectCommand))
             {
                 var fieldNames = GetNames(reader);
@@ -46,9 +58,7 @@ namespace SSystem.Data
                     T item = Activator.CreateInstance<T>();
                     foreach (var prop in properties)
                     {
-
                         AssignValue(reader, fieldNames, prop, item);
-
                     }
                     results.Add(item);
                 }
@@ -71,8 +81,19 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(selectCommand));
             var results = new List<T>();
 
-            Type type = typeof(T);
-            PropertyInfo[] properties = type.GetProperties();
+            string key = typeof(T).FullName;
+            var cachedPrperties = MemoryCache.Default.Get(key);
+            PropertyInfo[] properties;
+            if (cachedPrperties == null)
+            {
+                Type type = typeof(T);
+                properties = type.GetProperties();
+                MemoryCache.Default.Add(key, properties, DateTime.Now.AddMinutes(TimeoutOfCaching));
+            }
+            else
+            {
+                properties = MemoryCache.Default.Get(key) as PropertyInfo[];
+            }
             using (var reader = await ExecuteReaderAsync(selectCommand))
             {
                 var fieldNames = GetNames(reader);
@@ -81,9 +102,7 @@ namespace SSystem.Data
                     T item = Activator.CreateInstance<T>();
                     foreach (var prop in properties)
                     {
-
                         AssignValue(reader, fieldNames, prop, item);
-
                     }
                     results.Add(item);
                 }

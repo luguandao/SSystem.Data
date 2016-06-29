@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,10 +23,21 @@ namespace SSystem.Data
                 throw new ArgumentNullException(nameof(target));
 
             string col = propertyInfo.Name;
-            var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
-            if (attr != null && !string.IsNullOrEmpty(attr.ColumnName))
+            string typeName = typeof(T).FullName;
+            string key = typeName + col;
+            var cachedValue = MemoryCache.Default.Get(key);
+            if (cachedValue!=null)
             {
-                col = attr.ColumnName;
+                col = cachedValue.ToString();
+            }
+            else
+            {
+                var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
+                if (attr != null && !string.IsNullOrEmpty(attr.ColumnName))
+                {
+                    col = attr.ColumnName;
+                }
+                MemoryCache.Default.Add(key, col, DateTime.Now.AddMinutes(TimeoutOfCaching));
             }
 
             if (allFieldNames.Where(a => a.Equals(col, StringComparison.InvariantCultureIgnoreCase)).Any())

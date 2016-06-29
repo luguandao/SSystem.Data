@@ -21,6 +21,7 @@ namespace SSystem.Data
         /// </summary>
         public IDbConnection Connection { get; private set; }
         public IDbTransaction Transaction { get; private set; }
+        public int TimeoutOfCaching { get; set; } = 1440;
         internal DbProviderFactory DbProviderFactory;
         private string m_ProviderName;
         /// <summary>
@@ -133,7 +134,7 @@ namespace SSystem.Data
         }
 
 
-       
+
 
         /// <summary>
         /// 生成DbDataAdapter
