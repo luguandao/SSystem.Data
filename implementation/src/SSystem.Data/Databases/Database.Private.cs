@@ -1,8 +1,8 @@
-﻿using SSystem.Data.Mappings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.Linq.Mapping;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
@@ -33,9 +33,9 @@ namespace SSystem.Data
             else
             {
                 var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
-                if (attr != null && !string.IsNullOrEmpty(attr.ColumnName))
+                if (attr != null && !string.IsNullOrEmpty(attr.Name))
                 {
-                    col = attr.ColumnName;
+                    col = attr.Name;
                 }
                 MemoryCache.Default.Add(key, col, DateTime.Now.AddMinutes(TimeoutOfCaching));
             }

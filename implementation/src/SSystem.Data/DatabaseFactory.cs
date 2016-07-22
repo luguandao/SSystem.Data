@@ -17,7 +17,7 @@ namespace SSystem.Data
 
             _ProviderFactories.Add(dbtype, factory);
         }
-        public static Database Create(DatabaseType type, string connectionStringName, bool isTransaction=false)
+        public static Database Create(DatabaseType type, string connectionStringName, bool isTransaction = false)
         {
             if (!_ProviderFactories.ContainsKey(type))
                 throw new Exception("没有初始化数据库类型：" + type);
@@ -30,11 +30,31 @@ namespace SSystem.Data
             return database;
         }
 
-        public static Database Create(string connectionStringName, bool isTransaction=false)
+        public static Database Create(string connectionStringName, bool isTransaction = false)
         {
             if (_ProviderFactories.Count == 0)
                 throw new Exception("请调用AddProviderFactory初始化数据库类型");
             return Create(_ProviderFactories.First().Key, connectionStringName, isTransaction);
+        }
+
+        public static Database CreateByConnectionString(DatabaseType type, string connectionString, bool isTransaction = false)
+        {
+            if (!_ProviderFactories.ContainsKey(type))
+                throw new Exception("没有初始化数据库类型：" + type);
+
+            var conn = _ProviderFactories[type].CreateConnection();
+            conn.ConnectionString = connectionString;
+
+            var database = new Database(conn, isTransaction);
+            database.DbProviderFactory = _ProviderFactories[type];
+            return database;
+        }
+
+        public static Database CreateByConnectionString(string connectionString, bool isTransaction = false)
+        {
+            if (_ProviderFactories.Count == 0)
+                throw new Exception("请调用AddProviderFactory初始化数据库类型");
+            return CreateByConnectionString(_ProviderFactories.First().Key, connectionString, isTransaction);
         }
 
         private static string GetConnectionString(string connectionStringName)

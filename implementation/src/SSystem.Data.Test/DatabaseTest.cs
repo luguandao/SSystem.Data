@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Linq.Mapping;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using SSystem.Data.Mappings;
 
 namespace SSystem.Data.Test
 {
@@ -161,7 +161,7 @@ namespace SSystem.Data.Test
 
     public class AccNote
     {
-        [Column("ssId")]
+        [Column(Name ="ssID")]
         public int Id { get; set; }
         public int MrecNo { get; set; }
     }

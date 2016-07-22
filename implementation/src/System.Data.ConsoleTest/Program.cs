@@ -1,4 +1,5 @@
 ﻿using SSystem.Data;
+using System.Data.ConsoleTest.Models;
 using System.Diagnostics;
 
 namespace System.Data.ConsoleTest
@@ -10,11 +11,11 @@ namespace System.Data.ConsoleTest
             DatabaseFactory.AddProviderFactory(System.Data.SqlClient.SqlClientFactory.Instance, DatabaseType.SqlServer);
             using (var db = DatabaseFactory.Create("ZDATA"))
             {
-                System.Diagnostics.Stopwatch sw = new Stopwatch();
-                sw.Start();
-                var id = db.ExecuteScalar<int>(db.CreateCommand("select ssID from AccNote"));
-                sw.Stop();
-                Console.WriteLine(sw.ElapsedMilliseconds);
+                var obj = db.GetObjectList<AccNote>(db.CreateCommand("select * from AccNote"));
+                foreach (var item in obj)
+                {
+                    Console.WriteLine(item.Id);
+                }
             }
         }
     }
