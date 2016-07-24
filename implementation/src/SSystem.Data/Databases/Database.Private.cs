@@ -5,9 +5,6 @@ using System.Data.Common;
 using System.Data.Linq.Mapping;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SSystem.Data
 {
@@ -24,21 +21,13 @@ namespace SSystem.Data
 
             string col = propertyInfo.Name;
             string typeName = typeof(T).FullName;
-            string key = typeName + col;
-            var cachedValue = MemoryCache.Default.Get(key);
-            if (cachedValue!=null)
-            {
-                col = cachedValue.ToString();
-            }
-            else
-            {
+           
+         
                 var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
                 if (attr != null && !string.IsNullOrEmpty(attr.Name))
                 {
                     col = attr.Name;
                 }
-                MemoryCache.Default.Add(key, col, DateTime.Now.AddMinutes(TimeoutOfCaching));
-            }
 
             if (allFieldNames.Where(a => a.Equals(col, StringComparison.InvariantCultureIgnoreCase)).Any())
             {
