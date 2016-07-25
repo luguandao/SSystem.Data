@@ -14,12 +14,12 @@ namespace SSystem.Data
         /// <typeparam name="T"></typeparam>
         /// <param name="selectSql"></param>
         /// <returns></returns>
-        public IEnumerable<T> GetObjectList<T>(string selectSql) where T : class
+        public IEnumerable<T> QueryObject<T>(string selectSql) where T : class
         {
             if (string.IsNullOrEmpty(selectSql))
                 throw new ArgumentNullException(nameof(selectSql));
 
-            return GetObjectList<T>(CreateCommand(selectSql));
+            return QueryObject<T>(CreateCommand(selectSql));
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace SSystem.Data
         /// <typeparam name="T"></typeparam>
         /// <param name="selectCommand"></param>
         /// <returns></returns>
-        public IEnumerable<T> GetObjectList<T>(IDbCommand selectCommand) where T : class
+        public IEnumerable<T> QueryObject<T>(IDbCommand selectCommand) where T : class
         {
             if (selectCommand == null)
                 throw new ArgumentNullException(nameof(selectCommand));
@@ -55,16 +55,16 @@ namespace SSystem.Data
             return results;
         }
 
-        public async Task<IEnumerable<T>> GetObjectListAsync<T>(string selectSql) where T : class
+        public async Task<IEnumerable<T>> QueryObjectAsync<T>(string selectSql) where T : class
         {
             if (string.IsNullOrEmpty(selectSql))
                 throw new ArgumentNullException(nameof(selectSql));
 
-            return await GetObjectListAsync<T>(CreateCommand(selectSql));
+            return await QueryObjectAsync<T>(CreateCommand(selectSql));
         }
 
 
-        public async Task<IEnumerable<T>> GetObjectListAsync<T>(IDbCommand selectCommand) where T : class
+        public async Task<IEnumerable<T>> QueryObjectAsync<T>(IDbCommand selectCommand) where T : class
         {
             if (selectCommand == null)
                 throw new ArgumentNullException(nameof(selectCommand));

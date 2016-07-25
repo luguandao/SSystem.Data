@@ -121,7 +121,7 @@ namespace SSystem.Data.Test
         {
             using (var db = DatabaseFactory.Create(_DbName))
             {
-                var note = db.GetObjectList<AccNote>("select * from AccNote").First();
+                var note = db.QueryObject<AccNote>("select * from AccNote").First();
                 Assert.True(note.Id > 0);
             }
         }

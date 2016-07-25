@@ -21,13 +21,13 @@ namespace SSystem.Data
 
             string col = propertyInfo.Name;
             string typeName = typeof(T).FullName;
-           
-         
-                var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
-                if (attr != null && !string.IsNullOrEmpty(attr.Name))
-                {
-                    col = attr.Name;
-                }
+
+
+            var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
+            if (attr != null && !string.IsNullOrEmpty(attr.Name))
+            {
+                col = attr.Name;
+            }
 
             if (allFieldNames.Where(a => a.Equals(col, StringComparison.InvariantCultureIgnoreCase)).Any())
             {
@@ -40,7 +40,6 @@ namespace SSystem.Data
 
                 if (index > -1)
                 {
-                    //propertyInfo.PropertyType.BaseType.Name
                     if (propertyInfo.PropertyType.IsEnum)
                     {
 

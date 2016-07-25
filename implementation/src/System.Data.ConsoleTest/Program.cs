@@ -11,7 +11,7 @@ namespace System.Data.ConsoleTest
             DatabaseFactory.AddProviderFactory(System.Data.SqlClient.SqlClientFactory.Instance, DatabaseType.SqlServer);
             using (var db = DatabaseFactory.Create("ZDATA"))
             {
-                var obj = db.GetObjectList<AccNote>(db.CreateCommand("select * from AccNote"));
+                var obj = db.QueryObject<AccNote>(db.CreateCommand("select * from AccNote"));
                 foreach (var item in obj)
                 {
                     Console.WriteLine(item.Id);
