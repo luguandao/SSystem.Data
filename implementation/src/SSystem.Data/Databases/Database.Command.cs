@@ -17,7 +17,7 @@ namespace SSystem.Data
     public partial class Database
     {
         private readonly static string _Tablename = "_tablename";
-        public IDbCommand CreateCommand(string commandText = null) => CreateCommand(commandText, null);
+        public IDbCommand CreateCommand(string commandText = null) => CreateCommandByDictionary(commandText, null);
 
         /// <summary>
         /// 生成Command
@@ -25,7 +25,7 @@ namespace SSystem.Data
         /// <param name="commandText"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public IDbCommand CreateCommand(string commandText, IDictionary parameters)
+        private IDbCommand CreateCommandByDictionary(string commandText, IDictionary parameters)
         {
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
@@ -42,8 +42,12 @@ namespace SSystem.Data
             return commd;
         }
 
-        public IDbCommand CreateCommandByObject<T>(string commandText, T parameter)
+        public IDbCommand CreateCommand<T>(string commandText, T parameter)
         {
+            var dic = parameter as IDictionary;
+            if (dic != null)
+                return CreateCommandByDictionary(commandText, dic);
+
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandText = ReplaceProfixTag(commandText);
