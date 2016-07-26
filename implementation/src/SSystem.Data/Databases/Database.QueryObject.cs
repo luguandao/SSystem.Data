@@ -33,18 +33,16 @@ namespace SSystem.Data
             if (selectCommand == null)
                 throw new ArgumentNullException(nameof(selectCommand));
             var results = new List<T>();
-
-            PropertyInfo[] properties;
-
-            Type type = typeof(T);
-            properties = type.GetProperties();
+            var type = typeof(T);
+            PropertyInfo[] properties = type.GetProperties();
 
             using (var reader = ExecuteReader(selectCommand))
             {
                 var fieldNames = GetNames(reader);
+
                 while (reader.Read())
                 {
-                    T item = Activator.CreateInstance<T>();
+                    var item = (T)Compiler.DynamicMethodCompiler.CreateInstantiateObjectHandler(type)();
                     foreach (var prop in properties)
                     {
                         AssignValue(reader, fieldNames, prop, item);

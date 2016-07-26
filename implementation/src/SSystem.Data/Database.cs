@@ -108,30 +108,7 @@ namespace SSystem.Data
         /// </summary>
         /// <param name="commandText"></param>
         /// <returns></returns>
-        public IDbCommand CreateCommand(string commandText = null) => CreateCommand(commandText, null);
-
-        /// <summary>
-        /// 生成Command
-        /// </summary>
-        /// <param name="commandText"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        public IDbCommand CreateCommand(string commandText, IDictionary parameters)
-        {
-            var commd = Connection.CreateCommand();
-            commd.Transaction = Transaction;
-            commd.CommandText = ReplaceProfixTag(commandText);
-            commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
-            if (parameters != null && parameters.Count > 0)
-            {
-                var er = parameters.GetEnumerator();
-                while (er.MoveNext())
-                {
-                    commd.Parameters.Add(CreateIDataParameter(TagName + er.Key, er.Value == null ? DBNull.Value : er.Value, ParameterDirection.Input));
-                }
-            }
-            return commd;
-        }
+        
 
 
 
