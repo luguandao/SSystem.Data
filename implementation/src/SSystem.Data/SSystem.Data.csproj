@@ -50,6 +50,7 @@
     <Compile Include="DatabaseFactory.cs" />
     <Compile Include="Databases\Database.QueryObject.cs" />
     <Compile Include="DynamicMethodCompiler.cs" />
+    <Compile Include="QueryObjectResult.cs" />
     <Compile Include="SqlServerDatabaseCreator.cs" />
     <Compile Include="Databases\Database.DataReader.cs" />
     <Compile Include="Databases\Database.ExecuteNonQuery.cs" />

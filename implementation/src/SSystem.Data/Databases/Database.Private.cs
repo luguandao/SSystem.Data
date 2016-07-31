@@ -20,16 +20,8 @@ namespace SSystem.Data
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
-            // string col = GetColumnName(propertyInfo);
-            string col = propertyInfo.Name;
+            string col = GetColumnName(propertyInfo);
             string typeName = typeof(T).FullName;
-
-
-            var attr = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute)) as ColumnAttribute;
-            if (attr != null && !string.IsNullOrEmpty(attr.Name))
-            {
-                col = attr.Name;
-            }
 
             if (allFieldNames.Where(a => a.Equals(col, StringComparison.InvariantCultureIgnoreCase)).Any())
             {
@@ -45,13 +37,13 @@ namespace SSystem.Data
                     var type = typeof(T);
                     if (propertyInfo.PropertyType.IsEnum)
                     {
-                        //DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, Enum.ToObject(propertyInfo.PropertyType, value));
-                        propertyInfo.SetValue(target, Enum.ToObject(propertyInfo.PropertyType, value));
+                        DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, Enum.ToObject(propertyInfo.PropertyType, value));
+                        //propertyInfo.SetValue(target, Enum.ToObject(propertyInfo.PropertyType, value));
                     }
                     else
                     {
-                        //DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, value);
-                        propertyInfo.SetValue(target, value);
+                        DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, value);
+                        //propertyInfo.SetValue(target, value);
                     }
                 }
             }

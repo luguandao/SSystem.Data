@@ -180,8 +180,7 @@ namespace SSystem.Data
         }
 
         private static ConcurrentDictionary<string, string> _CachedPropertyInfo = new ConcurrentDictionary<string, string>();
-
-        private static ConcurrentDictionary<string, ColumnAttribute> _CachedPropertyInfoColumnAttributes = new ConcurrentDictionary<string, ColumnAttribute>();
+        
         private string GetColumnName(PropertyInfo prop)
         {
             string key = prop.DeclaringType.FullName + "." + prop.Name;
@@ -190,7 +189,21 @@ namespace SSystem.Data
 
             string name = prop.Name;
 
+            ColumnAttribute attr = GetColumnAttribute(prop);
+            if (attr != null && !string.IsNullOrEmpty(attr.Name))
+            {
+                name = attr.Name;
+            }
+
+            _CachedPropertyInfo.TryAdd(key, name);
+            return name;
+        }
+
+        private static ConcurrentDictionary<string, ColumnAttribute> _CachedPropertyInfoColumnAttributes = new ConcurrentDictionary<string, ColumnAttribute>();
+        private ColumnAttribute GetColumnAttribute(PropertyInfo prop)
+        {
             ColumnAttribute attr;
+            string key = prop.DeclaringType.FullName + "." + prop.Name;
             if (_CachedPropertyInfoColumnAttributes.ContainsKey(key))
             {
                 attr = _CachedPropertyInfoColumnAttributes[key];
@@ -200,13 +213,7 @@ namespace SSystem.Data
                 attr = prop.GetCustomAttribute<ColumnAttribute>(true);
                 _CachedPropertyInfoColumnAttributes.TryAdd(key, attr);
             }
-            if (attr != null && !string.IsNullOrEmpty(attr.Name))
-            {
-                name = attr.Name;
-            }
-
-            _CachedPropertyInfo.TryAdd(key, name);
-            return name;
+            return attr;
         }
     }
 }
