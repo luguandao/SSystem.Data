@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SSystem.Data.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -19,6 +20,7 @@ namespace SSystem.Data
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
+            // string col = GetColumnName(propertyInfo);
             string col = propertyInfo.Name;
             string typeName = typeof(T).FullName;
 
@@ -40,13 +42,15 @@ namespace SSystem.Data
 
                 if (index > -1)
                 {
+                    var type = typeof(T);
                     if (propertyInfo.PropertyType.IsEnum)
                     {
-
+                        //DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, Enum.ToObject(propertyInfo.PropertyType, value));
                         propertyInfo.SetValue(target, Enum.ToObject(propertyInfo.PropertyType, value));
                     }
                     else
                     {
+                        //DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, value);
                         propertyInfo.SetValue(target, value);
                     }
                 }

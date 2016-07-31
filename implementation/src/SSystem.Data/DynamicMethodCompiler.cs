@@ -53,8 +53,8 @@ namespace SSystem.Data.Compiler
             getGenerator.Emit(OpCodes.Ret);
 
             var handler = (GetHandler)dynamicGet.CreateDelegate(typeof(GetHandler));
-            return _CachedGetHandlers.GetOrAdd(key, handler);
-           
+            _CachedGetHandlers.TryAdd(key, handler);
+            return handler;
         }
 
         // CreateGetDelegate

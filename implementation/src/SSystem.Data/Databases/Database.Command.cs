@@ -42,12 +42,8 @@ namespace SSystem.Data
             return commd;
         }
 
-        public IDbCommand CreateCommand<T>(string commandText, T parameter)
+        private IDbCommand CreateCommandByObject<T>(string commandText, T parameter) where T : new()
         {
-            var dic = parameter as IDictionary;
-            if (dic != null)
-                return CreateCommandByDictionary(commandText, dic);
-
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandText = ReplaceProfixTag(commandText);
@@ -64,6 +60,15 @@ namespace SSystem.Data
             }
             return commd;
         }
+
+        public IDbCommand CreateCommand<T>(string commandText, T parameter) where T : new()
+        {
+            var dic = parameter as IDictionary;
+            if (dic != null)
+                return CreateCommandByDictionary(commandText, dic);
+            return CreateCommandByObject<T>(commandText, parameter);
+        }
+
         public IDbCommand CreateInsertCommand<T>(T parameter)
         {
             var commd = Connection.CreateCommand();
@@ -124,7 +129,6 @@ namespace SSystem.Data
                 commd.Parameters.Add(CreateIDataParameter(TagName + GetColumnName(prop), val, ParameterDirection.Input));
             }
             return commd;
-
         }
 
         private Dictionary<string, object> CalculteValues<T>(T parameter, PropertyInfo[] props)
@@ -164,6 +168,9 @@ namespace SSystem.Data
                 var name = GetColumnName(prop);
                 if (string.IsNullOrEmpty(name))
                     continue;
+                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                if (attr != null && attr.IsDbGenerated)
+                    continue;
                 var val = values[prop.Name];
                 if (val == null)
                     continue;
@@ -172,20 +179,34 @@ namespace SSystem.Data
             return columns.ToArray();
         }
 
-        private static ConcurrentDictionary<string, string> m_CachedPropertyInfo = new ConcurrentDictionary<string, string>();
+        private static ConcurrentDictionary<string, string> _CachedPropertyInfo = new ConcurrentDictionary<string, string>();
+
+        private static ConcurrentDictionary<string, ColumnAttribute> _CachedPropertyInfoColumnAttributes = new ConcurrentDictionary<string, ColumnAttribute>();
         private string GetColumnName(PropertyInfo prop)
         {
-            string key = prop.DeclaringType.FullName + prop.Name;
-            if (m_CachedPropertyInfo.ContainsKey(key))
-                return m_CachedPropertyInfo[key];
+            string key = prop.DeclaringType.FullName + "." + prop.Name;
+            if (_CachedPropertyInfo.ContainsKey(key))
+                return _CachedPropertyInfo[key];
 
             string name = prop.Name;
-            var attr = prop.GetCustomAttribute<ColumnAttribute>(true);
-            if (attr != null)
+
+            ColumnAttribute attr;
+            if (_CachedPropertyInfoColumnAttributes.ContainsKey(key))
+            {
+                attr = _CachedPropertyInfoColumnAttributes[key];
+            }
+            else
+            {
+                attr = prop.GetCustomAttribute<ColumnAttribute>(true);
+                _CachedPropertyInfoColumnAttributes.TryAdd(key, attr);
+            }
+            if (attr != null && !string.IsNullOrEmpty(attr.Name))
             {
                 name = attr.Name;
             }
-            return m_CachedPropertyInfo.GetOrAdd(key, name);
+
+            _CachedPropertyInfo.TryAdd(key, name);
+            return name;
         }
     }
 }
