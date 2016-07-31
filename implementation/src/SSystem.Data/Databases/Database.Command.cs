@@ -71,40 +71,71 @@ namespace SSystem.Data
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-
-            string tableName = GetTableName(type);
             var props = type.GetProperties();
+            var values = CalculteValues(parameter, props);
+            string tableName = GetTableName(type);
+
             var selectedTable = props.Where(a => _Tablename.Equals(a.Name)).FirstOrDefault();
             if (selectedTable != null)
             {
-                var oVal = selectedTable.GetValue(parameter);
+                var oVal = values[selectedTable.Name];
                 if (oVal != null)
                 {
                     tableName = oVal.ToString();
                 }
             }
 
-            var arr = GetParameterColumnNames(props);
+            var columns = GetParameterColumnNames(props, values);
             var sbSql = new StringBuilder();
             sbSql.Append("INSERT INTO ");
             sbSql.Append(tableName);
             sbSql.Append("(");
-            sbSql.Append(arr[0]);
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (i > 0 && i == columns.Length - 1)
+                {
+                    sbSql.Append(",");
+                }
+                sbSql.Append(columns[i]);
+            }
             sbSql.Append(")");
 
             sbSql.Append("VALUES(");
-            sbSql.Append(arr[1]);
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (i > 0 && i == columns.Length - 1)
+                {
+                    sbSql.Append(",");
+                }
+                sbSql.Append(TagName);
+                sbSql.Append(columns[i]);
+            }
             sbSql.Append(")");
 
             commd.CommandText = sbSql.ToString();
             sbSql.Clear();
             foreach (var prop in props)
             {
-                var val = DynamicMethodCompiler.CreateGetHandler(type, prop)(parameter);
+                var val = values[prop.Name];
+                if (val == null)
+                {
+                    val = DBNull.Value;
+                }
                 commd.Parameters.Add(CreateIDataParameter(TagName + GetColumnName(prop), val, ParameterDirection.Input));
             }
             return commd;
 
+        }
+
+        private Dictionary<string, object> CalculteValues<T>(T parameter, PropertyInfo[] props)
+        {
+            Dictionary<string, object> values = new Dictionary<string, object>();
+            var type = typeof(T);
+            foreach (var prop in props)
+            {
+                values.Add(prop.Name, DynamicMethodCompiler.CreateGetHandler(type, prop)(parameter));
+            }
+            return values;
         }
 
         private static Dictionary<string, string> m_CachedTableName = new Dictionary<string, string>();
@@ -123,32 +154,22 @@ namespace SSystem.Data
             return name;
         }
 
-        private string[] GetParameterColumnNames(PropertyInfo[] props, bool isTag = false)
+        private string[] GetParameterColumnNames(PropertyInfo[] props, Dictionary<string, object> values)
         {
-            var sbColumns = new StringBuilder();
-            var sbTagColumns = new StringBuilder();
+            var columns = new List<string>();
             foreach (var prop in props)
             {
                 if (_Tablename.Equals(prop.Name))
                     continue;
-
-                if (sbColumns.Length > 0)
-                {
-                    sbColumns.Append(",");
-                }
-
-                if (sbTagColumns.Length > 0)
-                {
-                    sbTagColumns.Append(",");
-                }
-
-                
-
                 var name = GetColumnName(prop);
-                sbColumns.Append(name);
-                sbTagColumns.Append("@").Append(name);
+                if (string.IsNullOrEmpty(name))
+                    continue;
+                var val = values[prop.Name];
+                if (val == null)
+                    continue;
+                columns.Add(name);
             }
-            return new[] { sbColumns.ToString(), sbTagColumns.ToString() };
+            return columns.ToArray();
         }
 
         private static ConcurrentDictionary<string, string> m_CachedPropertyInfo = new ConcurrentDictionary<string, string>();
