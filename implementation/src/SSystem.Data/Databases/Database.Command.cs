@@ -42,7 +42,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        private IDbCommand CreateCommandByObject<T>(string commandText, T parameter) where T : new()
+        private IDbCommand CreateCommandByObject<T>(string commandText, T parameter)
         {
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
@@ -61,7 +61,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        public IDbCommand CreateCommand<T>(string commandText, T parameter) where T : new()
+        public IDbCommand CreateCommand<T>(string commandText, T parameter)
         {
             var dic = parameter as IDictionary;
             if (dic != null)
