@@ -108,7 +108,7 @@ namespace SSystem.Data
         /// </summary>
         /// <param name="commandText"></param>
         /// <returns></returns>
-        
+
 
 
 
@@ -140,6 +140,17 @@ namespace SSystem.Data
             return adapt;
         }
 
+        public void BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
+        {
+            if (Transaction == null)
+            {
+                if (Connection.State != ConnectionState.Open)
+                {
+                    Connection.Open();
+                }
+                Transaction = Connection.BeginTransaction(level);
+            }
+        }
 
         /// <summary>
         /// 释放数据库连接
