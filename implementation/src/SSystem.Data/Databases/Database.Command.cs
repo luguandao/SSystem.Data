@@ -97,7 +97,7 @@ namespace SSystem.Data
             sbSql.Append("(");
             for (int i = 0; i < columns.Length; i++)
             {
-                if (i > 0 && i == columns.Length - 1)
+                if (i > 0)
                 {
                     sbSql.Append(",");
                 }
@@ -105,10 +105,10 @@ namespace SSystem.Data
             }
             sbSql.Append(")");
 
-            sbSql.Append("VALUES(");
+            sbSql.Append(" VALUES(");
             for (int i = 0; i < columns.Length; i++)
             {
-                if (i > 0 && i == columns.Length - 1)
+                if (i > 0)
                 {
                     sbSql.Append(",");
                 }
@@ -180,7 +180,7 @@ namespace SSystem.Data
         }
 
         private static ConcurrentDictionary<string, string> _CachedPropertyInfo = new ConcurrentDictionary<string, string>();
-        
+
         private string GetColumnName(PropertyInfo prop)
         {
             string key = prop.DeclaringType.FullName + "." + prop.Name;
