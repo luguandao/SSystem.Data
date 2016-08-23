@@ -35,8 +35,13 @@ namespace SSystem.Data
             var results = new List<T>();
             var type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
+            CommandBehavior behavior = CommandBehavior.CloseConnection;
+            if (Transaction != null && Connection.State != ConnectionState.Closed)
+            {
+                behavior = CommandBehavior.Default;
+            }
 
-            using (var reader = ExecuteReader(selectCommand))
+            using (var reader = ExecuteReader(selectCommand, behavior))
             {
                 var fieldNames = GetNames(reader);
 
@@ -72,8 +77,13 @@ namespace SSystem.Data
             var list = new List<T>();
             var type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
+            CommandBehavior behavior = CommandBehavior.CloseConnection;
+            if (Transaction != null && Connection.State != ConnectionState.Closed)
+            {
+                behavior = CommandBehavior.Default;
+            }
 
-            using (var reader = ExecuteReader(selectCommand))
+            using (var reader = ExecuteReader(selectCommand, behavior))
             {
                 var fieldNames = GetNames(reader);
 
@@ -114,8 +124,13 @@ namespace SSystem.Data
             PropertyInfo[] properties;
             Type type = typeof(T);
             properties = type.GetProperties();
+            CommandBehavior behavior = CommandBehavior.CloseConnection;
+            if (Transaction != null && Connection.State != ConnectionState.Closed)
+            {
+                behavior = CommandBehavior.Default;
+            }
 
-            using (var reader = await ExecuteReaderAsync(selectCommand))
+            using (var reader = await ExecuteReaderAsync(selectCommand, behavior))
             {
                 var fieldNames = GetNames(reader);
                 while (reader.Read())
@@ -150,8 +165,13 @@ namespace SSystem.Data
             var list = new List<T>();
             var type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
+            CommandBehavior behavior = CommandBehavior.CloseConnection;
+            if (Transaction != null && Connection.State != ConnectionState.Closed)
+            {
+                behavior = CommandBehavior.Default;
+            }
 
-            using (var reader = await ExecuteReaderAsync(selectCommand))
+            using (var reader = await ExecuteReaderAsync(selectCommand, behavior))
             {
                 var fieldNames = GetNames(reader);
 
