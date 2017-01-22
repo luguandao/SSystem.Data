@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace SSystem.Data
 {
@@ -88,6 +89,20 @@ namespace SSystem.Data
             }
         }
 
+        public static void Init(string assembly, string factoryFullTypeName, DatabaseType type)
+        {
+            Assembly ass;
+            if (assembly == "System.Data")
+            {
+                ass = Assembly.GetAssembly(typeof(System.Data.SqlClient.SqlClientFactory));
+            }
+            else
+            {
+                ass = Assembly.Load(assembly);
+            }
+            var instance = (DbProviderFactory)ass.CreateInstance(factoryFullTypeName);
+            AddProviderFactory(instance, type);
+        }
         private static string GetConnectionString(string connectionStringName)
         {
             if (_DbTypeConnectionStringCached.ContainsKey(connectionStringName))
