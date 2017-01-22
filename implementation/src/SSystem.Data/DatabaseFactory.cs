@@ -91,16 +91,16 @@ namespace SSystem.Data
 
         public static void Init(string assembly, string factoryFullTypeName, DatabaseType type)
         {
-            Assembly ass;
+            DbProviderFactory instance;
             if (assembly == "System.Data")
             {
-                ass = Assembly.GetAssembly(typeof(System.Data.SqlClient.SqlClientFactory));
+                instance = System.Data.SqlClient.SqlClientFactory.Instance;
             }
             else
             {
-                ass = Assembly.Load(assembly);
+               var ass = Assembly.Load(assembly);
+                instance = (DbProviderFactory)ass.CreateInstance(factoryFullTypeName);
             }
-            var instance = (DbProviderFactory)ass.CreateInstance(factoryFullTypeName);
             AddProviderFactory(instance, type);
         }
         private static string GetConnectionString(string connectionStringName)
