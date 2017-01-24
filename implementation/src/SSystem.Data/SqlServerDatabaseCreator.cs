@@ -31,7 +31,7 @@ namespace SSystem.Data
         public string DataFileInitialSize { get; set; } = "5Mb";
         public string LogFileInitialSize { get; set; } = "2Mb";
         public string LogFileGrowth { get; set; } = "1Mb";
-        public SqlServerDatabaseCreator(string dbName,string dbFileDirectory)
+        public SqlServerDatabaseCreator(string dbName, string dbFileDirectory)
         {
             if (string.IsNullOrEmpty(dbName))
                 throw new ArgumentNullException(nameof(dbName));
@@ -42,12 +42,12 @@ namespace SSystem.Data
             DbFileDirectory = dbFileDirectory;
         }
 
-        public void Create(string connectionStringName)
+        public void Create(string connectionString)
         {
             string sqlScript = string.Format(@"create DATABASE {0}
 on primary
 (
-name='{0}_data',
+name='{0}',
 filename='{1}',
 size={2},
 maxsize={3},
@@ -60,10 +60,10 @@ filename='{5}',
 size={6},
 filegrowth={7}
 )
-", DbName, Path.Combine(DbFileDirectory, string.Format("{0}_data.mdf", DbName)), DataFileInitialSize, MaxSize, FileGrowth,
+", DbName, Path.Combine(DbFileDirectory, string.Format("{0}.mdf", DbName)), DataFileInitialSize, MaxSize, FileGrowth,
 Path.Combine(DbFileDirectory, string.Format("{0}_log.ldf", DbName)), LogFileInitialSize, LogFileGrowth);
 
-            using (var context = new Database(connectionStringName))
+            using (var context = DatabaseFactory.CreateByConnectionString(connectionString))
             {
                 context.ExecuteNonQuery(sqlScript);
             }
