@@ -89,7 +89,7 @@ namespace SSystem.Data
                     tableName = oVal.ToString();
                 }
             }
-
+            props = SelectProps(props, values);
             var columns = GetParameterColumnNames(props, values);
             var sbSql = new StringBuilder();
             sbSql.Append("INSERT INTO ");
@@ -174,9 +174,32 @@ namespace SSystem.Data
                 var val = values[prop.Name];
                 if (val == null)
                     continue;
+
                 columns.Add(name);
             }
             return columns.ToArray();
+        }
+
+        private PropertyInfo[] SelectProps(PropertyInfo[] props,Dictionary<string,object> values)
+        {
+            List<PropertyInfo> list = new List<PropertyInfo>();
+            foreach (var prop in props)
+            {
+                if (_Tablename.Equals(prop.Name))
+                    continue;
+                var name = GetColumnName(prop);
+                if (string.IsNullOrEmpty(name))
+                    continue;
+                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                if (attr != null && attr.IsDbGenerated)
+                    continue;
+                var val = values[prop.Name];
+                if (val == null)
+                    continue;
+
+                list.Add(prop);
+            }
+            return list.ToArray();
         }
 
         private static ConcurrentDictionary<string, string> _CachedPropertyInfo = new ConcurrentDictionary<string, string>();
