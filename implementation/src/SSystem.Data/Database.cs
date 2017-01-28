@@ -89,9 +89,11 @@ namespace SSystem.Data
                     break;
                 case "sqliteconnection":
                     DatabaseType = DatabaseType.Sqlite;
+                    TagName = "@";
                     break;
                 case "mysqlconnection":
                     DatabaseType = DatabaseType.MySql;
+                    TagName = "?";
                     break;
                 default:
                     throw new NotImplementedException(connTypeName);
