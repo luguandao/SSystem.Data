@@ -131,6 +131,56 @@ namespace SSystem.Data
             return commd;
         }
 
+        public IDbCommand CreateUpdateCommand<T>(T parameter)
+        {
+            var commd = Connection.CreateCommand();
+            commd.Transaction = Transaction;
+            commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
+
+            var type = typeof(T);
+            var props = type.GetProperties();
+            var values = CalculteValues(parameter, props);
+            string tableName = GetTableName(type);
+            props = SelectProps(props, values);
+            var columns = GetParameterColumnNamesWithoutPrimaryKey(props, values);
+            var sbSql = new StringBuilder();
+
+            sbSql.Append("UPDATE ");
+            sbSql.Append(tableName);
+            sbSql.Append(" SET ");
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (i > 0)
+                {
+                    sbSql.Append(",");
+                }
+                sbSql.Append(columns[i]);
+                sbSql.Append("=");
+                sbSql.Append($"@{columns[i]}");
+            }
+
+            sbSql.Append(" WHERE ");
+
+            string primaryKeyName = GetPrimaryKeyName();
+            sbSql.Append(primaryKeyName);
+            sbSql.Append("=");
+            sbSql.Append("@");
+            sbSql.Append(primaryKeyName);
+
+            commd.CommandText = sbSql.ToString();
+            sbSql.Clear();
+            foreach (var prop in props)
+            {
+                var val = values[prop.Name];
+                if (val == null)
+                {
+                    val = DBNull.Value;
+                }
+                commd.Parameters.Add(CreateIDataParameter(TagName + GetColumnName(prop), val, ParameterDirection.Input));
+            }
+            return commd;
+        }
+
         private Dictionary<string, object> CalculteValues<T>(T parameter, PropertyInfo[] props)
         {
             Dictionary<string, object> values = new Dictionary<string, object>();
@@ -180,7 +230,37 @@ namespace SSystem.Data
             return columns.ToArray();
         }
 
-        private PropertyInfo[] SelectProps(PropertyInfo[] props,Dictionary<string,object> values)
+        private string[] GetParameterColumnNamesWithoutPrimaryKey(PropertyInfo[] props, Dictionary<string, object> values)
+        {
+            var columns = new List<string>();
+            foreach (var prop in props)
+            {
+                if (_Tablename.Equals(prop.Name))
+                    continue;
+                var name = GetColumnName(prop);
+                if (string.IsNullOrEmpty(name))
+                    continue;
+                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                if (attr != null && (attr.IsDbGenerated || attr.IsPrimaryKey))
+                    continue;
+                var val = values[prop.Name];
+                if (val == null)
+                    continue;
+
+                columns.Add(name);
+            }
+            return columns.ToArray();
+        }
+
+        private string GetPrimaryKeyName()
+        {
+            string selected = _CachedPropertyInfoColumnAttributes.Where(a => a.Value != null && a.Value.IsPrimaryKey)?.Select(a => a.Key).FirstOrDefault();
+            if (string.IsNullOrEmpty(selected))
+                return string.Empty;
+            return _CachedPropertyInfo[selected];
+        }
+
+        private PropertyInfo[] SelectProps(PropertyInfo[] props, Dictionary<string, object> values)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
             foreach (var prop in props)
