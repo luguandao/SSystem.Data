@@ -69,7 +69,7 @@ namespace SSystem.Data
             return CreateCommandByObject<T>(commandText, parameter);
         }
 
-        public IDbCommand CreateInsertCommand<T>(T parameter)
+        public IDbCommand CreateInsertCommand<T>(T parameter, bool ignorePrimaryKey = true)
         {
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
@@ -90,7 +90,7 @@ namespace SSystem.Data
                 }
             }
             props = SelectProps(props, values);
-            var columns = GetParameterColumnNames(props, values);
+            var columns = GetParameterColumnNames(props, values, ignorePrimaryKey);
             var sbSql = new StringBuilder();
             sbSql.Append("INSERT INTO ");
             sbSql.Append(tableName);
@@ -208,7 +208,7 @@ namespace SSystem.Data
             return name;
         }
 
-        private string[] GetParameterColumnNames(PropertyInfo[] props, Dictionary<string, object> values)
+        private string[] GetParameterColumnNames(PropertyInfo[] props, Dictionary<string, object> values, bool ignorePrimaryKey)
         {
             var columns = new List<string>();
             foreach (var prop in props)
@@ -220,6 +220,8 @@ namespace SSystem.Data
                     continue;
                 var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
                 if (attr != null && attr.IsDbGenerated)
+                    continue;
+                if (attr != null && attr.IsPrimaryKey && ignorePrimaryKey)
                     continue;
                 var val = values[prop.Name];
                 if (val == null)
