@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CreateCommandOption.cs" />
     <Compile Include="Databases\Database.Command.cs" />
     <Compile Include="Databases\Database.ExecuteScalar.cs" />
     <Compile Include="Databases\Database.GetFirstColumn.cs" />

@@ -69,14 +69,26 @@ namespace SSystem.Data
             return CreateCommandByObject<T>(commandText, parameter);
         }
 
-        public IDbCommand CreateInsertCommand<T>(T parameter, bool ignorePrimaryKey = true)
+        /// <summary>
+        /// 生成insert语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        public IDbCommand CreateInsertCommand<T>(T parameter, CreateCommandOption option = null)
         {
+            if (option == null)
+            {
+                option = new CreateCommandOption();
+            }
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = type.GetProperties();
+            var props = SplitPropertiesByOption(option, type.GetProperties());
+
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
 
@@ -90,7 +102,7 @@ namespace SSystem.Data
                 }
             }
             props = SelectProps(props, values);
-            var columns = GetParameterColumnNames(props, values, ignorePrimaryKey);
+            var columns = GetParameterColumnNames(props, values, option.IgnorePrimaryKey);
             var sbSql = new StringBuilder();
             sbSql.Append("INSERT INTO ");
             sbSql.Append(tableName);
@@ -131,14 +143,39 @@ namespace SSystem.Data
             return commd;
         }
 
-        public IDbCommand CreateUpdateCommand<T>(T parameter)
+        private PropertyInfo[] SplitPropertiesByOption(CreateCommandOption option,PropertyInfo[] props)
         {
+            if (option.OnlyProperties != null && option.OnlyProperties.Any())
+            {
+                props = props.Where(a => option.OnlyProperties.Contains(a.Name)).ToArray();
+            }
+            else if(option.IgnoreProperties!=null&&option.IgnoreProperties.Any())
+            {
+                props = props.Where(a => !option.IgnoreProperties.Contains(a.Name)).ToArray();
+            }
+            return props;
+        }
+
+        /// <summary>
+        /// 生成update语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        public IDbCommand CreateUpdateCommand<T>(T parameter, CreateCommandOption option = null)
+        {
+            if (option == null)
+            {
+                option = new CreateCommandOption();
+            }
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = type.GetProperties();
+            var props = SplitPropertiesByOption(option, type.GetProperties());
+
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
             props = SelectProps(props, values);
