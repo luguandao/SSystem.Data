@@ -87,7 +87,7 @@ namespace SSystem.Data
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = SplitPropertiesByOption(option, type.GetProperties());
+            var props = SplitPropertiesByOption(option, GetColumnProperties(type));
 
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
@@ -143,13 +143,13 @@ namespace SSystem.Data
             return commd;
         }
 
-        private PropertyInfo[] SplitPropertiesByOption(CreateCommandOption option,PropertyInfo[] props)
+        private IEnumerable<PropertyInfo> SplitPropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
         {
             if (option.OnlyProperties != null && option.OnlyProperties.Any())
             {
                 props = props.Where(a => option.OnlyProperties.Contains(a.Name)).ToArray();
             }
-            else if(option.IgnoreProperties!=null&&option.IgnoreProperties.Any())
+            else if (option.IgnoreProperties != null && option.IgnoreProperties.Any())
             {
                 props = props.Where(a => !option.IgnoreProperties.Contains(a.Name)).ToArray();
             }
@@ -174,7 +174,7 @@ namespace SSystem.Data
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = SplitPropertiesByOption(option, type.GetProperties());
+            var props = SplitPropertiesByOption(option, GetColumnProperties(type));
 
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
@@ -218,7 +218,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        private Dictionary<string, object> CalculteValues<T>(T parameter, PropertyInfo[] props)
+        private Dictionary<string, object> CalculteValues<T>(T parameter, IEnumerable<PropertyInfo> props)
         {
             Dictionary<string, object> values = new Dictionary<string, object>();
             var type = typeof(T);
@@ -245,7 +245,7 @@ namespace SSystem.Data
             return name;
         }
 
-        private string[] GetParameterColumnNames(PropertyInfo[] props, Dictionary<string, object> values, bool ignorePrimaryKey)
+        private string[] GetParameterColumnNames(IEnumerable<PropertyInfo> props, Dictionary<string, object> values, bool ignorePrimaryKey)
         {
             var columns = new List<string>();
             foreach (var prop in props)
@@ -269,7 +269,7 @@ namespace SSystem.Data
             return columns.ToArray();
         }
 
-        private string[] GetParameterColumnNamesWithoutPrimaryKey(PropertyInfo[] props, Dictionary<string, object> values)
+        private string[] GetParameterColumnNamesWithoutPrimaryKey(IEnumerable<PropertyInfo> props, Dictionary<string, object> values)
         {
             var columns = new List<string>();
             foreach (var prop in props)
@@ -299,7 +299,7 @@ namespace SSystem.Data
             return _CachedPropertyInfo[selected];
         }
 
-        private PropertyInfo[] SelectProps(PropertyInfo[] props, Dictionary<string, object> values)
+        private PropertyInfo[] SelectProps(IEnumerable<PropertyInfo> props, Dictionary<string, object> values)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
             foreach (var prop in props)
@@ -356,6 +356,13 @@ namespace SSystem.Data
                 _CachedPropertyInfoColumnAttributes.TryAdd(key, attr);
             }
             return attr;
+        }
+
+        private IEnumerable<PropertyInfo> GetColumnProperties(Type type)
+        {
+            var props = type.GetProperties();
+            var customType = typeof(ColumnAttribute);
+            return props.Where(a => a.CustomAttributes.Any(b => b.AttributeType == customType));
         }
     }
 }
