@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
+using System.Data.Linq.Mapping;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -111,10 +112,6 @@ namespace SSystem.Data
         /// <param name="commandText"></param>
         /// <returns></returns>
 
-
-
-
-
         /// <summary>
         /// 生成DbDataAdapter
         /// </summary>
@@ -152,6 +149,21 @@ namespace SSystem.Data
                 }
                 Transaction = Connection.BeginTransaction(level);
             }
+        }
+
+        /// <summary>
+        /// 获取实体类所对应的表名
+        /// </summary>
+        /// <returns></returns>
+        public string GetTableName<T>()
+        {
+            var type = typeof(T);
+            var customType = typeof(TableAttribute);
+            var attrs = type.GetCustomAttributes(customType, true);
+            var selected = attrs.FirstOrDefault(a => a.GetType() == customType);
+            if (selected == null)
+                return type.Name;
+            return ((TableAttribute)selected).Name;
         }
 
         /// <summary>
