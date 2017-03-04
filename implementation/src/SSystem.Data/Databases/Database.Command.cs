@@ -219,7 +219,7 @@ namespace SSystem.Data
         }
 
         public IDbCommand CreateDeleteCommand<T>(T parameter)
-        {
+        { 
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
