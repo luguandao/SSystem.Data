@@ -179,7 +179,7 @@ namespace SSystem.Data
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
             props = SelectProps(props, values);
-            var columns = GetParameterColumnNamesWithoutPrimaryKey(props, values);
+            var columns = GetParameterColumnNamesWithoutPrimaryKey(props, values, option);
             var sbSql = new StringBuilder();
 
             sbSql.Append("UPDATE ");
@@ -198,11 +198,28 @@ namespace SSystem.Data
 
             sbSql.Append(" WHERE ");
 
-            string primaryKeyName = GetPrimaryKeyName();
-            sbSql.Append(primaryKeyName);
-            sbSql.Append("=");
-            sbSql.Append("@");
-            sbSql.Append(primaryKeyName);
+            if (option.WhereProperties == null || !option.WhereProperties.Any())
+            {
+                string primaryKeyName = GetPrimaryKeyName();
+                sbSql.Append(primaryKeyName);
+                sbSql.Append("=");
+                sbSql.Append("@");
+                sbSql.Append(primaryKeyName);
+            }
+            else
+            {
+                var whereProps = SplitWherePropertiesByOption(option, GetColumnProperties(type)).ToArray();
+                var whereValues = CalculteValues(parameter, whereProps);
+                whereProps = SelectProps(whereProps, whereValues);
+                for (var i = 0; i < whereProps.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sbSql.Append(" AND ");
+                    }
+                    sbSql.AppendFormat("{0}=@{0}", GetColumnName(whereProps[i]));
+                }
+            }
 
             commd.CommandText = sbSql.ToString();
             sbSql.Clear();
@@ -218,8 +235,19 @@ namespace SSystem.Data
             return commd;
         }
 
-        public IDbCommand CreateDeleteCommand<T>(T parameter)
-        { 
+        /// <summary>
+        /// 生成Delete sql语句
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="parameter"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        public IDbCommand CreateDeleteCommand<T>(T parameter, CreateCommandOption option = null)
+        {
+            if (option == null)
+            {
+                option = new CreateCommandOption();
+            }
             var commd = Connection.CreateCommand();
             commd.Transaction = Transaction;
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
@@ -232,19 +260,48 @@ namespace SSystem.Data
 
             var primaryKeyName = GetPrimaryKeyName();
 
-            commd.CommandText = $"DELETE FROM {tableName} WHERE {primaryKeyName}=@{primaryKeyName}";
-            foreach (var prop in props)
+            StringBuilder sbSql = new StringBuilder();
+            sbSql.Append($"DELETE FROM {tableName} WHERE ");
+            if (option.WhereProperties == null || !option.WhereProperties.Any())
             {
-                var columnName = GetColumnName(prop);
-                if (columnName != primaryKeyName) continue;
-                var val = values[prop.Name];
-                if (val == null)
-                {
-                    val = DBNull.Value;
-                }
-                commd.Parameters.Add(CreateIDataParameter(TagName + columnName, val, ParameterDirection.Input));
+                sbSql.Append($"{primaryKeyName}=@{primaryKeyName}");
+                PropertyInfo primaryInfo = props.First(a => GetColumnName(a) == primaryKeyName);
+                commd.Parameters.Add(CreateIDataParameter(TagName + primaryKeyName, values[primaryInfo.Name], ParameterDirection.Input));
             }
+            else
+            {
+                var whereProps = SplitWherePropertiesByOption(option, GetColumnProperties(type)).ToArray();
+                var whereValues = CalculteValues(parameter, whereProps);
+                whereProps = SelectProps(whereProps, whereValues);
+                for (var i = 0; i < whereProps.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sbSql.Append(" AND ");
+                    }
+                    sbSql.AppendFormat("{0}=@{0}", GetColumnName(whereProps[i]));
+                }
+                foreach (var prop in whereProps)
+                {
+                    var val = values[prop.Name];
+                    if (val == null)
+                    {
+                        val = DBNull.Value;
+                    }
+                    commd.Parameters.Add(CreateIDataParameter(TagName + GetColumnName(prop), val, ParameterDirection.Input));
+                }
+            }
+            commd.CommandText = sbSql.ToString();
             return commd;
+        }
+
+        private IEnumerable<PropertyInfo> SplitWherePropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
+        {
+            if (option.WhereProperties != null && option.WhereProperties.Any())
+            {
+                props = props.Where(a => option.WhereProperties.Contains(a.Name)).ToArray();
+            }
+            return props;
         }
 
         private Dictionary<string, object> CalculteValues<T>(T parameter, IEnumerable<PropertyInfo> props)
@@ -298,7 +355,7 @@ namespace SSystem.Data
             return columns.ToArray();
         }
 
-        private string[] GetParameterColumnNamesWithoutPrimaryKey(IEnumerable<PropertyInfo> props, Dictionary<string, object> values)
+        private string[] GetParameterColumnNamesWithoutPrimaryKey(IEnumerable<PropertyInfo> props, Dictionary<string, object> values, CreateCommandOption option)
         {
             var columns = new List<string>();
             foreach (var prop in props)
@@ -313,6 +370,8 @@ namespace SSystem.Data
                     continue;
                 var val = values[prop.Name];
                 if (val == null)
+                    continue;
+                if (option != null && option.WhereProperties.Any() && option.WhereProperties.Contains(prop.Name))
                     continue;
 
                 columns.Add(name);

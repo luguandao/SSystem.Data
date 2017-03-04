@@ -18,11 +18,13 @@ namespace SSystem.Data
         /// <summary>
         /// 获取或设置忽略的列名
         /// </summary>
-        public IList<string> IgnoreProperties { get; set; } 
+        public IList<string> IgnoreProperties { get; set; }
         /// <summary>
         /// 获取或设置指定的列名，优先以指定的列名为准
         /// </summary>
         public IList<string> OnlyProperties { get; set; }
+
+        public IList<string> WhereProperties { get; set; }
 
         /// <summary>
         /// 指定要处理的属性，多属性值之间用逗号分隔
@@ -52,6 +54,15 @@ namespace SSystem.Data
             return AddProperties(IgnoreProperties, properties);
         }
 
+        public CreateCommandOption AddWhereProperties(string properties)
+        {
+            if (WhereProperties == null)
+            {
+                WhereProperties = new List<string>();
+            }
+            return AddProperties(WhereProperties, properties);
+        }
+
         private CreateCommandOption AddProperties(IList<string> container, string properties)
         {
             if (!string.IsNullOrEmpty(properties))
@@ -67,6 +78,5 @@ namespace SSystem.Data
             }
             return this;
         }
-
     }
 }
