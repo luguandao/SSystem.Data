@@ -218,6 +218,35 @@ namespace SSystem.Data
             return commd;
         }
 
+        public IDbCommand CreateDeleteCommand<T>(T parameter)
+        {
+            var commd = Connection.CreateCommand();
+            commd.Transaction = Transaction;
+            commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
+
+            var type = typeof(T);
+            var props = GetColumnProperties(type);
+            var values = CalculteValues(parameter, props);
+            string tableName = GetTableName(type);
+            props = SelectProps(props, values);
+
+            var primaryKeyName = GetPrimaryKeyName();
+
+            commd.CommandText = $"DELETE FROM {tableName} WHERE {primaryKeyName}=@{primaryKeyName}";
+            foreach (var prop in props)
+            {
+                var columnName = GetColumnName(prop);
+                if (columnName != primaryKeyName) continue;
+                var val = values[prop.Name];
+                if (val == null)
+                {
+                    val = DBNull.Value;
+                }
+                commd.Parameters.Add(CreateIDataParameter(TagName + columnName, val, ParameterDirection.Input));
+            }
+            return commd;
+        }
+
         private Dictionary<string, object> CalculteValues<T>(T parameter, IEnumerable<PropertyInfo> props)
         {
             Dictionary<string, object> values = new Dictionary<string, object>();
