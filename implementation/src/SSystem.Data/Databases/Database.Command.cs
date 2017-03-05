@@ -371,7 +371,7 @@ namespace SSystem.Data
                 var val = values[prop.Name];
                 if (val == null)
                     continue;
-                if (option != null && option.WhereProperties.Any() && option.WhereProperties.Contains(prop.Name))
+                if (option != null && option.WhereProperties != null && option.WhereProperties.Any() && option.WhereProperties.Contains(prop.Name))
                     continue;
 
                 columns.Add(name);
