@@ -145,15 +145,31 @@ namespace SSystem.Data
 
         private IEnumerable<PropertyInfo> SplitPropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
         {
+            List<PropertyInfo> list = new List<PropertyInfo>();
+            if (option.WhereProperties != null && option.WhereProperties.Any())
+            {
+                list.AddRange(props.Where(a => option.WhereProperties.Contains(a.Name)));
+            }
+            else
+            {
+                var pri = props.FirstOrDefault(a => GetColumnAttribute(a).IsPrimaryKey);
+                if (pri != null)
+                {
+                    list.Add(pri);
+                }
+            }
+
             if (option.OnlyProperties != null && option.OnlyProperties.Any())
             {
-                props = props.Where(a => option.OnlyProperties.Contains(a.Name)).ToArray();
+                list.AddRange(props.Where(a => option.OnlyProperties.Contains(a.Name)));
             }
             else if (option.IgnoreProperties != null && option.IgnoreProperties.Any())
             {
-                props = props.Where(a => !option.IgnoreProperties.Contains(a.Name)).ToArray();
+                list.AddRange(props.Where(a => !option.IgnoreProperties.Contains(a.Name)));
             }
-            return props;
+            list.Distinct();
+
+            return list;
         }
 
         /// <summary>
@@ -200,7 +216,7 @@ namespace SSystem.Data
 
             if (option.WhereProperties == null || !option.WhereProperties.Any())
             {
-                string primaryKeyName = GetPrimaryKeyName();
+                string primaryKeyName = GetPrimaryKeyName(props);
                 sbSql.Append(primaryKeyName);
                 sbSql.Append("=");
                 sbSql.Append("@");
@@ -258,7 +274,7 @@ namespace SSystem.Data
             string tableName = GetTableName(type);
             props = SelectProps(props, values);
 
-            var primaryKeyName = GetPrimaryKeyName();
+            var primaryKeyName = GetPrimaryKeyName(props);
 
             StringBuilder sbSql = new StringBuilder();
             sbSql.Append($"DELETE FROM {tableName} WHERE ");
@@ -341,7 +357,7 @@ namespace SSystem.Data
                 var name = GetColumnName(prop);
                 if (string.IsNullOrEmpty(name))
                     continue;
-                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                var attr = GetColumnAttribute(prop);
                 if (attr != null && attr.IsDbGenerated)
                     continue;
                 if (attr != null && attr.IsPrimaryKey && ignorePrimaryKey)
@@ -365,7 +381,7 @@ namespace SSystem.Data
                 var name = GetColumnName(prop);
                 if (string.IsNullOrEmpty(name))
                     continue;
-                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                var attr = GetColumnAttribute(prop);
                 if (attr != null && (attr.IsDbGenerated || attr.IsPrimaryKey))
                     continue;
                 var val = values[prop.Name];
@@ -379,12 +395,12 @@ namespace SSystem.Data
             return columns.ToArray();
         }
 
-        private string GetPrimaryKeyName()
+        private string GetPrimaryKeyName(IEnumerable<PropertyInfo> props)
         {
-            string selected = _CachedPropertyInfoColumnAttributes.Where(a => a.Value != null && a.Value.IsPrimaryKey)?.Select(a => a.Key).FirstOrDefault();
-            if (string.IsNullOrEmpty(selected))
+            var selected = props.FirstOrDefault(a => GetColumnAttribute(a).IsPrimaryKey);
+            if (selected == null)
                 return string.Empty;
-            return _CachedPropertyInfo[selected];
+            return GetColumnName(selected);
         }
 
         private PropertyInfo[] SelectProps(IEnumerable<PropertyInfo> props, Dictionary<string, object> values)
