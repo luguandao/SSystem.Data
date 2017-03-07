@@ -87,7 +87,7 @@ namespace SSystem.Data
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = SplitPropertiesByOption(option, GetColumnProperties(type));
+            var props = SplitInsertPropertiesByOption(option, GetColumnProperties(type));
 
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
@@ -143,7 +143,7 @@ namespace SSystem.Data
             return commd;
         }
 
-        private IEnumerable<PropertyInfo> SplitPropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
+        private IEnumerable<PropertyInfo> SplitUpdateOrDeletePropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
             if (option.WhereProperties != null && option.WhereProperties.Any())
@@ -172,6 +172,20 @@ namespace SSystem.Data
             return list;
         }
 
+        private IEnumerable<PropertyInfo> SplitInsertPropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
+        {
+            if (option.OnlyProperties != null && option.OnlyProperties.Any())
+            {
+                props = props.Where(a => option.OnlyProperties.Contains(a.Name));
+            }
+            else if (option.IgnoreProperties != null && option.IgnoreProperties.Any())
+            {
+                props = props.Where(a => !option.IgnoreProperties.Contains(a.Name));
+            }
+
+            return props;
+        }
+
         /// <summary>
         /// 生成update语句
         /// </summary>
@@ -190,7 +204,7 @@ namespace SSystem.Data
             commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
 
             var type = typeof(T);
-            var props = SplitPropertiesByOption(option, GetColumnProperties(type));
+            var props = SplitUpdateOrDeletePropertiesByOption(option, GetColumnProperties(type));
 
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
