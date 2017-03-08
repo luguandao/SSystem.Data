@@ -167,9 +167,7 @@ namespace SSystem.Data
             {
                 list.AddRange(props.Where(a => !option.IgnoreProperties.Contains(a.Name)));
             }
-            list.Distinct();
-
-            return list;
+            return list.Distinct();
         }
 
         private IEnumerable<PropertyInfo> SplitInsertPropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
