@@ -48,6 +48,7 @@
     <Compile Include="Databases\Database.GetFirstColumn.cs" />
     <Compile Include="DatabaseFactory.cs" />
     <Compile Include="Databases\Database.QueryObject.cs" />
+    <Compile Include="DBHelper.cs" />
     <Compile Include="DynamicMethodCompiler.cs" />
     <Compile Include="QueryObjectResult.cs" />
     <Compile Include="SqlServerDatabaseCreator.cs" />

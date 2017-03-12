@@ -152,21 +152,6 @@ namespace SSystem.Data
         }
 
         /// <summary>
-        /// 获取实体类所对应的表名
-        /// </summary>
-        /// <returns></returns>
-        public string GetTableName<T>()
-        {
-            var type = typeof(T);
-            var customType = typeof(TableAttribute);
-            var attrs = type.GetCustomAttributes(customType, true);
-            var selected = attrs.FirstOrDefault(a => a.GetType() == customType);
-            if (selected == null)
-                return type.Name;
-            return ((TableAttribute)selected).Name;
-        }
-
-        /// <summary>
         /// 释放数据库连接
         /// </summary>
         public void Dispose()
@@ -179,6 +164,10 @@ namespace SSystem.Data
             Connection.Dispose();
         }
 
-
+        /// <summary>
+        /// 获取实体类所对应的表名
+        /// </summary>
+        /// <returns></returns>
+        public string GetTableName<T>() => DBHelper.GetTableName<T>();
     }
 }
