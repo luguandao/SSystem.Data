@@ -146,6 +146,7 @@ namespace SSystem.Data
         private IEnumerable<PropertyInfo> SplitUpdateOrDeletePropertiesByOption(CreateCommandOption option, IEnumerable<PropertyInfo> props)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
+
             if (option.WhereProperties != null && option.WhereProperties.Any())
             {
                 list.AddRange(props.Where(a => option.WhereProperties.Contains(a.Name)));
@@ -163,9 +164,26 @@ namespace SSystem.Data
             {
                 list.AddRange(props.Where(a => option.OnlyProperties.Contains(a.Name)));
             }
-            else if (option.IgnoreProperties != null && option.IgnoreProperties.Any())
+            else
             {
-                list.AddRange(props.Where(a => !option.IgnoreProperties.Contains(a.Name)));
+                foreach (var item in props)
+                {
+                    if (!list.Contains(item))
+                    {
+                        list.Add(item);
+                    }
+                }
+            }
+            if (option.IgnoreProperties != null && option.IgnoreProperties.Any())
+            {
+                foreach (var item in option.IgnoreProperties)
+                {
+                   var selected = list.FirstOrDefault(a => a.Name == item);
+                    if (selected != null)
+                    {
+                        list.Remove(selected);
+                    }
+                }
             }
             return list.Distinct();
         }
