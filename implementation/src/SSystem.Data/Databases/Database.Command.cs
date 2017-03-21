@@ -178,7 +178,7 @@ namespace SSystem.Data
             {
                 foreach (var item in option.IgnoreProperties)
                 {
-                   var selected = list.FirstOrDefault(a => a.Name == item);
+                    var selected = list.FirstOrDefault(a => a.Name == item);
                     if (selected != null)
                     {
                         list.Remove(selected);
@@ -387,14 +387,28 @@ namespace SSystem.Data
                 var name = GetColumnName(prop);
                 if (string.IsNullOrEmpty(name))
                     continue;
-                var attr = GetColumnAttribute(prop);
-                if (attr != null && attr.IsDbGenerated)
-                    continue;
-                if (attr != null && attr.IsPrimaryKey && ignorePrimaryKey)
-                    continue;
                 var val = values[prop.Name];
                 if (val == null)
                     continue;
+                var isDefaultValue = false;
+                switch (val.GetType().Name.ToLower())
+                {
+                    case "int64":
+                        isDefaultValue = Convert.ToInt64(val) == default(long);
+                        break;
+                    case "int32":
+                        isDefaultValue = Convert.ToInt32(val) == default(int);
+                        break;
+                    case "int16":
+                        isDefaultValue = Convert.ToInt16(val) == default(short);
+                        break;
+                }
+                var attr = GetColumnAttribute(prop);
+                if (attr != null && attr.IsDbGenerated && isDefaultValue)
+                    continue;
+                if (attr != null && attr.IsPrimaryKey && ignorePrimaryKey)
+                    continue;
+
 
                 columns.Add(name);
             }
@@ -443,11 +457,28 @@ namespace SSystem.Data
                 var name = GetColumnName(prop);
                 if (string.IsNullOrEmpty(name))
                     continue;
-                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
-                if (attr != null && attr.IsDbGenerated)
-                    continue;
+
+                var isDefaultValue = false;
                 var val = values[prop.Name];
                 if (val == null)
+                    continue;
+
+                switch (val.GetType().Name.ToLower())
+                {
+                    case "int64":
+                        isDefaultValue = Convert.ToInt64(val) == default(long);
+                        break;
+                    case "int32":
+                        isDefaultValue = Convert.ToInt32(val) == default(int);
+                        break;
+                    case "int16":
+                        isDefaultValue = Convert.ToInt16(val) == default(short);
+                        break;
+                }
+
+
+                var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                if (attr != null && attr.IsDbGenerated && isDefaultValue)
                     continue;
 
                 list.Add(prop);
