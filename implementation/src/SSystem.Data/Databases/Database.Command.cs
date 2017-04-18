@@ -402,6 +402,9 @@ namespace SSystem.Data
                     case "int16":
                         isDefaultValue = Convert.ToInt16(val) == default(short);
                         break;
+                    case "datetime":
+                        isDefaultValue = Convert.ToDateTime(val) == default(DateTime);
+                        break;
                 }
                 var attr = GetColumnAttribute(prop);
                 if (attr != null && attr.IsDbGenerated && isDefaultValue)
