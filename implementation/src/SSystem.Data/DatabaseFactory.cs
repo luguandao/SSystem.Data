@@ -17,7 +17,7 @@ namespace SSystem.Data
         public static void AddProviderFactory(DbProviderFactory factory, DatabaseType dbtype)
         {
             if (_ProviderFactories.ContainsKey(dbtype))
-                throw new Exception("重复初始化");
+                return;
 
             _ProviderFactories.Add(dbtype, factory);
         }
@@ -98,7 +98,7 @@ namespace SSystem.Data
             }
             else
             {
-               var ass = Assembly.Load(assembly);
+                var ass = Assembly.Load(assembly);
                 instance = (DbProviderFactory)ass.CreateInstance(factoryFullTypeName);
             }
             AddProviderFactory(instance, type);
