@@ -59,7 +59,54 @@ namespace SSystem.Data
             return ExecuteScalar<T>(CreateCommand(selectSql));
         }
 
+        public static object ConvertTo(Type type, object oval)
+        {
+            if (type.IsValueType)
+            {
+                var defaultValue = Activator.CreateInstance(type);
+                if (defaultValue == oval)
+                    return defaultValue;
+            }
+            else
+            {
+                if (oval == null)
+                    return null;
+            }
 
+            object result = null;
+
+            switch (type.Name.ToLower())
+            {
+                case "string":
+                    object tmp = Convert.ToString(oval);
+                    result = tmp;
+                    break;
+                case "double":
+                    result = Convert.ToDouble(oval);
+                    break;
+                case "decimal":
+                    result = Convert.ToDecimal(oval);
+                    break;
+                default:
+                    MethodInfo[] methods = type.GetMethods();
+                    MethodInfo meth = null;
+                    foreach (MethodInfo item in methods)
+                    {
+                        if (item.IsPublic && item.Name == "Parse" && item.GetParameters().Length == 1)
+                        {
+                            meth = item;
+                            break;
+                        }
+                    }
+                    if (meth != null)//找到Parse方法
+                    {
+                        result = meth.Invoke(result, new object[] { Convert.ToString(oval) });
+                    }
+                    break;
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// 类型转换
@@ -85,6 +132,9 @@ namespace SSystem.Data
                         break;
                     case "double":
                         result = (T)(object)Convert.ToDouble(oval);
+                        break;
+                    case "decimal":
+                        result = (T)(object)Convert.ToDecimal(oval);
                         break;
                     default:
                         MethodInfo[] methods = typeof(T).GetMethods();

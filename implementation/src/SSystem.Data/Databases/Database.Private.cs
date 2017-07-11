@@ -38,16 +38,22 @@ namespace SSystem.Data
                     if (propertyInfo.PropertyType.IsEnum)
                     {
                         DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, Enum.ToObject(propertyInfo.PropertyType, value));
-                        //propertyInfo.SetValue(target, Enum.ToObject(propertyInfo.PropertyType, value));
                     }
                     else
                     {
-                        DynamicMethodCompiler.CreateSetHandler(type, propertyInfo)(target, value);
-                        //propertyInfo.SetValue(target, value);
+                        var handler = DynamicMethodCompiler.CreateSetHandler(type, propertyInfo);
+                        handler(target, ConvertTo(propertyInfo.PropertyType, value));
+                        //try
+                        //{
+                        //    handler(target, value);
+                        //}
+                        //catch
+                        //{
+                        //    handler(target, ConvertTo(propertyInfo.PropertyType, value));
+                        //}
                     }
                 }
             }
-
         }
 
         private IDbConnection CreateConnection(string connectionString)
