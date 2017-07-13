@@ -92,7 +92,7 @@ namespace SSystem.Data
                     MethodInfo meth = null;
                     foreach (MethodInfo item in methods)
                     {
-                        if (item.IsPublic && item.Name == "Parse" && item.GetParameters().Length == 1)
+                        if (item.IsPublic && ((item.Name == "Parse" && item.GetParameters().Length == 1) || item.Name == "get_Value"))
                         {
                             meth = item;
                             break;
@@ -100,7 +100,14 @@ namespace SSystem.Data
                     }
                     if (meth != null)//找到Parse方法
                     {
-                        result = meth.Invoke(result, new object[] { Convert.ToString(oval) });
+                        if (meth.GetParameters().Length == 1)
+                        {
+                            result = meth.Invoke(oval, new object[] { Convert.ToString(oval) });
+                        }
+                        else if (meth.GetParameters().Length == 0)
+                        {
+                            result = meth.Invoke(oval, null);
+                        }
                     }
                     break;
             }
