@@ -492,13 +492,13 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-        private static ConcurrentDictionary<string, string> _CachedPropertyInfo = new ConcurrentDictionary<string, string>();
+        private static Hashtable _CachedPropertyInfo = new Hashtable();
 
         private string GetColumnName(PropertyInfo prop)
         {
-            string key = $"GetColumnName.{prop.PropertyType.FullName}.{prop.Name}"; 
+            string key = $"GetColumnName.{prop.PropertyType.FullName}.{prop.Name}";
             if (_CachedPropertyInfo.ContainsKey(key))
-                return _CachedPropertyInfo[key];
+                return _CachedPropertyInfo[key].ToString();
 
             string name = prop.Name;
 
@@ -508,7 +508,7 @@ namespace SSystem.Data
                 name = attr.Name;
             }
 
-            _CachedPropertyInfo.TryAdd(key, name);
+            _CachedPropertyInfo.Add(key, name);
             return name;
         }
 
