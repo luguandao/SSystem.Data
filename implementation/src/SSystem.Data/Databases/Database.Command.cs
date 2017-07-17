@@ -487,7 +487,7 @@ namespace SSystem.Data
                             break;
                     }
 
-                    var attr = _CachedPropertyInfoColumnAttributes[prop.PropertyType.FullName + "." + prop.Name];
+                    var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
                     if (attr != null && attr.IsDbGenerated && isDefaultValue)
                         continue;
                 }
@@ -496,11 +496,11 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-        private static Hashtable _CachedPropertyInfo = new Hashtable();
+        private Hashtable _CachedPropertyInfo = new Hashtable();
 
         private string GetColumnName(PropertyInfo prop)
         {
-            string key = $"GetColumnName.{prop.PropertyType.FullName}.{prop.Name}";
+            string key = $"GetColumnName.{prop.DeclaringType.FullName}.{prop.Name}";
             if (_CachedPropertyInfo.ContainsKey(key))
                 return _CachedPropertyInfo[key].ToString();
 
@@ -520,7 +520,7 @@ namespace SSystem.Data
         private ColumnAttribute GetColumnAttribute(PropertyInfo prop)
         {
             ColumnAttribute attr;
-            string key = prop.PropertyType.FullName + "." + prop.Name;
+            string key = prop.DeclaringType.FullName + "." + prop.Name;
             if (_CachedPropertyInfoColumnAttributes.ContainsKey(key))
             {
                 attr = _CachedPropertyInfoColumnAttributes[key];

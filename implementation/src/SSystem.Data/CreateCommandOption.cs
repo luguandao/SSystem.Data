@@ -74,7 +74,7 @@ namespace SSystem.Data
             {
                 return !IgnoreProperties.Contains(Name);
             }
-            return true;
+            return false;
         }
 
         private CreateCommandOption AddProperties(IList<string> container, string properties)
