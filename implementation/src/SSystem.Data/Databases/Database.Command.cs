@@ -101,7 +101,7 @@ namespace SSystem.Data
                     tableName = oVal.ToString();
                 }
             }
-            props = SelectProps(props, values);
+            props = SelectProps(props, values, option);
             var columns = GetParameterColumnNames(props, values, option.IgnorePrimaryKey);
             var sbSql = new StringBuilder();
             sbSql.Append("INSERT INTO ");
@@ -224,7 +224,7 @@ namespace SSystem.Data
 
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
-            props = SelectProps(props, values);
+            props = SelectProps(props, values, option);
             var columns = GetParameterColumnNamesWithoutPrimaryKey(props, values, option);
             var sbSql = new StringBuilder();
 
@@ -256,7 +256,7 @@ namespace SSystem.Data
             {
                 var whereProps = SplitWherePropertiesByOption(option, GetColumnProperties(type)).ToArray();
                 var whereValues = CalculteValues(parameter, whereProps);
-                whereProps = SelectProps(whereProps, whereValues);
+                whereProps = SelectProps(whereProps, whereValues, option);
                 for (var i = 0; i < whereProps.Length; i++)
                 {
                     if (i > 0)
@@ -302,7 +302,7 @@ namespace SSystem.Data
             var props = GetColumnProperties(type);
             var values = CalculteValues(parameter, props);
             string tableName = GetTableName(type);
-            props = SelectProps(props, values);
+            props = SelectProps(props, values, option);
 
             var primaryKeyName = GetPrimaryKeyName(props);
 
@@ -318,7 +318,7 @@ namespace SSystem.Data
             {
                 var whereProps = SplitWherePropertiesByOption(option, GetColumnProperties(type)).ToArray();
                 var whereValues = CalculteValues(parameter, whereProps);
-                whereProps = SelectProps(whereProps, whereValues);
+                whereProps = SelectProps(whereProps, whereValues, option);
                 for (var i = 0; i < whereProps.Length; i++)
                 {
                     if (i > 0)
@@ -431,9 +431,12 @@ namespace SSystem.Data
                 var attr = GetColumnAttribute(prop);
                 if (attr != null && (attr.IsDbGenerated || attr.IsPrimaryKey))
                     continue;
-                var val = values[prop.Name];
-                if (val == null)
-                    continue;
+                if (!option.HasDesignatedProperties(prop.Name))
+                {
+                    var val = values[prop.Name];
+                    if (val == null)
+                        continue;
+                }
                 if (option != null && option.WhereProperties != null && option.WhereProperties.Any() && option.WhereProperties.Contains(prop.Name))
                     continue;
 
@@ -450,7 +453,7 @@ namespace SSystem.Data
             return GetColumnName(selected);
         }
 
-        private PropertyInfo[] SelectProps(IEnumerable<PropertyInfo> props, Dictionary<string, object> values)
+        private PropertyInfo[] SelectProps(IEnumerable<PropertyInfo> props, Dictionary<string, object> values, CreateCommandOption option)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
             foreach (var prop in props)
@@ -461,32 +464,33 @@ namespace SSystem.Data
                 if (string.IsNullOrEmpty(name))
                     continue;
 
-                var isDefaultValue = false;
-                var val = values[prop.Name];
-                if (val == null)
-                    continue;
-
-                switch (val.GetType().Name.ToLower())
+                if (!option.HasDesignatedProperties(prop.Name))
                 {
-                    case "int64":
-                        isDefaultValue = Convert.ToInt64(val) == default(long);
-                        break;
-                    case "int32":
-                        isDefaultValue = Convert.ToInt32(val) == default(int);
-                        break;
-                    case "int16":
-                        isDefaultValue = Convert.ToInt16(val) == default(short);
-                        break;
-                    case "datetime":
-                        isDefaultValue = Convert.ToDateTime(val) == default(DateTime);
-                        break;
+                    var isDefaultValue = false;
+                    var val = values[prop.Name];
+                    if (val == null)
+                        continue;
+
+                    switch (val.GetType().Name.ToLower())
+                    {
+                        case "int64":
+                            isDefaultValue = Convert.ToInt64(val) == default(long);
+                            break;
+                        case "int32":
+                            isDefaultValue = Convert.ToInt32(val) == default(int);
+                            break;
+                        case "int16":
+                            isDefaultValue = Convert.ToInt16(val) == default(short);
+                            break;
+                        case "datetime":
+                            isDefaultValue = Convert.ToDateTime(val) == default(DateTime);
+                            break;
+                    }
+
+                    var attr = _CachedPropertyInfoColumnAttributes[prop.PropertyType.FullName + "." + prop.Name];
+                    if (attr != null && attr.IsDbGenerated && isDefaultValue)
+                        continue;
                 }
-
-
-                var attr = _CachedPropertyInfoColumnAttributes[prop.PropertyType.FullName + "." + prop.Name];
-                if (attr != null && attr.IsDbGenerated && isDefaultValue)
-                    continue;
-
                 list.Add(prop);
             }
             return list.ToArray();

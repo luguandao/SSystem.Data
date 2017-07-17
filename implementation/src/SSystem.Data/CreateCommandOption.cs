@@ -63,6 +63,20 @@ namespace SSystem.Data
             return AddProperties(WhereProperties, properties);
         }
 
+        public bool HasDesignatedProperties(string Name)
+        {
+            if (OnlyProperties != null)
+            {
+                return OnlyProperties.Contains(Name);
+            }
+
+            if (IgnoreProperties != null)
+            {
+                return !IgnoreProperties.Contains(Name);
+            }
+            return true;
+        }
+
         private CreateCommandOption AddProperties(IList<string> container, string properties)
         {
             if (!string.IsNullOrEmpty(properties))
