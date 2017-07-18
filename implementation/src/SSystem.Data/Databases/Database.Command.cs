@@ -361,7 +361,7 @@ namespace SSystem.Data
             return values;
         }
 
-        private static Dictionary<string, string> m_CachedTableName = new Dictionary<string, string>();
+        private Dictionary<string, string> m_CachedTableName = new Dictionary<string, string>();
         private string GetTableName(Type type)
         {
             if (m_CachedTableName.ContainsKey(type.FullName))
@@ -487,7 +487,7 @@ namespace SSystem.Data
                             break;
                     }
 
-                    var attr = _CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                    var attr = m_CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
                     if (attr != null && attr.IsDbGenerated && isDefaultValue)
                         continue;
                 }
@@ -496,13 +496,13 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-        private Hashtable _CachedPropertyInfo = new Hashtable();
+        private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
 
         private string GetColumnName(PropertyInfo prop)
         {
             string key = $"GetColumnName.{prop.DeclaringType.FullName}.{prop.Name}";
-            if (_CachedPropertyInfo.ContainsKey(key))
-                return _CachedPropertyInfo[key].ToString();
+            if (m_CachedPropertyInfo.ContainsKey(key))
+                return m_CachedPropertyInfo[key].ToString();
 
             string name = prop.Name;
 
@@ -512,23 +512,23 @@ namespace SSystem.Data
                 name = attr.Name;
             }
 
-            _CachedPropertyInfo.Add(key, name);
+            m_CachedPropertyInfo.Add(key, name);
             return name;
         }
 
-        private static ConcurrentDictionary<string, ColumnAttribute> _CachedPropertyInfoColumnAttributes = new ConcurrentDictionary<string, ColumnAttribute>();
+        private Dictionary<string, ColumnAttribute> m_CachedPropertyInfoColumnAttributes = new Dictionary<string, ColumnAttribute>();
         private ColumnAttribute GetColumnAttribute(PropertyInfo prop)
         {
             ColumnAttribute attr;
             string key = prop.DeclaringType.FullName + "." + prop.Name;
-            if (_CachedPropertyInfoColumnAttributes.ContainsKey(key))
+            if (m_CachedPropertyInfoColumnAttributes.ContainsKey(key))
             {
-                attr = _CachedPropertyInfoColumnAttributes[key];
+                attr = m_CachedPropertyInfoColumnAttributes[key];
             }
             else
             {
                 attr = prop.GetCustomAttribute<ColumnAttribute>(true);
-                _CachedPropertyInfoColumnAttributes.TryAdd(key, attr);
+                m_CachedPropertyInfoColumnAttributes.Add(key, attr);
             }
             return attr;
         }
