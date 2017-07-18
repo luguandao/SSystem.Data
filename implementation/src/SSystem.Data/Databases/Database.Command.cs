@@ -496,13 +496,13 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-        private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
+      //  private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
 
         private string GetColumnName(PropertyInfo prop)
         {
-            string key = $"GetColumnName.{prop.DeclaringType.FullName}.{prop.Name}";
-            if (m_CachedPropertyInfo.ContainsKey(key))
-                return m_CachedPropertyInfo[key].ToString();
+            //string key = $"GetColumnName.{prop.DeclaringType.FullName}.{prop.Name}";
+            //if (m_CachedPropertyInfo.ContainsKey(key))
+            //    return m_CachedPropertyInfo[key].ToString();
 
             string name = prop.Name;
 
@@ -512,7 +512,7 @@ namespace SSystem.Data
                 name = attr.Name;
             }
 
-            m_CachedPropertyInfo.Add(key, name);
+          //  m_CachedPropertyInfo.Add(key, name);
             return name;
         }
 
