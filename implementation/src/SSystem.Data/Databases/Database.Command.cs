@@ -361,19 +361,14 @@ namespace SSystem.Data
             return values;
         }
 
-        private Dictionary<string, string> m_CachedTableName = new Dictionary<string, string>();
         private string GetTableName(Type type)
         {
-            if (m_CachedTableName.ContainsKey(type.FullName))
-                return m_CachedTableName[type.FullName];
-
             string name = type.Name;
             var tableAttr = type.GetCustomAttribute<TableAttribute>(true);
             if (tableAttr != null)
             {
                 name = tableAttr.Name;
             }
-            m_CachedTableName.Add(type.FullName, name);
             return name;
         }
 
@@ -496,7 +491,7 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-      //  private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
+        //  private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
 
         private string GetColumnName(PropertyInfo prop)
         {
@@ -512,7 +507,7 @@ namespace SSystem.Data
                 name = attr.Name;
             }
 
-          //  m_CachedPropertyInfo.Add(key, name);
+            //  m_CachedPropertyInfo.Add(key, name);
             return name;
         }
 
