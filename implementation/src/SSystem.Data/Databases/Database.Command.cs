@@ -482,7 +482,7 @@ namespace SSystem.Data
                             break;
                     }
 
-                    var attr = m_CachedPropertyInfoColumnAttributes[prop.DeclaringType.FullName + "." + prop.Name];
+                    var attr = GetColumnAttribute(prop);
                     if (attr != null && attr.IsDbGenerated && isDefaultValue)
                         continue;
                 }
@@ -491,42 +491,18 @@ namespace SSystem.Data
             return list.ToArray();
         }
 
-        //  private Dictionary<string,string> m_CachedPropertyInfo = new Dictionary<string, string>();
-
         private string GetColumnName(PropertyInfo prop)
         {
-            //string key = $"GetColumnName.{prop.DeclaringType.FullName}.{prop.Name}";
-            //if (m_CachedPropertyInfo.ContainsKey(key))
-            //    return m_CachedPropertyInfo[key].ToString();
-
             string name = prop.Name;
-
             ColumnAttribute attr = GetColumnAttribute(prop);
             if (attr != null && !string.IsNullOrEmpty(attr.Name))
             {
                 name = attr.Name;
             }
-
-            //  m_CachedPropertyInfo.Add(key, name);
             return name;
         }
 
-        private Dictionary<string, ColumnAttribute> m_CachedPropertyInfoColumnAttributes = new Dictionary<string, ColumnAttribute>();
-        private ColumnAttribute GetColumnAttribute(PropertyInfo prop)
-        {
-            ColumnAttribute attr;
-            string key = prop.DeclaringType.FullName + "." + prop.Name;
-            if (m_CachedPropertyInfoColumnAttributes.ContainsKey(key))
-            {
-                attr = m_CachedPropertyInfoColumnAttributes[key];
-            }
-            else
-            {
-                attr = prop.GetCustomAttribute<ColumnAttribute>(true);
-                m_CachedPropertyInfoColumnAttributes.Add(key, attr);
-            }
-            return attr;
-        }
+        private ColumnAttribute GetColumnAttribute(PropertyInfo prop) => prop.GetCustomAttribute<ColumnAttribute>(true);
 
         private IEnumerable<PropertyInfo> GetColumnProperties(Type type)
         {
