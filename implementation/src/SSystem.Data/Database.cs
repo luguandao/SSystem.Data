@@ -23,6 +23,7 @@ namespace SSystem.Data
         public IDbConnection Connection { get; private set; }
         public IDbTransaction Transaction { get; private set; }
         public int TimeoutOfCaching { get; set; } = 1440;
+        public bool NeverDispose { get; set; }
         internal DbProviderFactory DbProviderFactory;
         private string m_ProviderName;
         /// <summary>
@@ -156,12 +157,15 @@ namespace SSystem.Data
         /// </summary>
         public void Dispose()
         {
-            if (Transaction != null)
+            if (!NeverDispose)
             {
-                Transaction.Dispose();
+                if (Transaction != null)
+                {
+                    Transaction.Dispose();
+                }
+                Connection.Close();
+                Connection.Dispose();
             }
-            Connection.Close();
-            Connection.Dispose();
         }
 
         /// <summary>
