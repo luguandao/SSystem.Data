@@ -158,7 +158,6 @@ namespace SSystem.Data
         {
             if (Transaction != null)
             {
-                Transaction.Rollback();
                 Transaction.Dispose();
             }
             Connection.Close();
