@@ -69,6 +69,21 @@ namespace SSystem.Data
             return CreateCommandByObject<T>(commandText, parameter);
         }
 
+        public IDbCommand CreateSelectCommand<T,PrimaryKeyType>(PrimaryKeyType keyValue)
+        {
+            var props = GetColumnProperties(typeof(T));
+
+            var primaryKeyName = GetPrimaryKeyName(props);
+            var commd = Connection.CreateCommand();
+            commd.CommandText = $"SELECT * FROM {GetTableName<T>()} where {primaryKeyName}=@{primaryKeyName}";
+            commd.CommandType = CommandType.Text;
+            commd.Transaction = Transaction;
+            commd.CommandTimeout = DefaultCommandTimeoutBySeconds;
+
+            commd.Parameters.Add(CreateIDataParameter(TagName + primaryKeyName, keyValue));
+            return commd;
+        }
+
         /// <summary>
         /// 生成insert语句
         /// </summary>
