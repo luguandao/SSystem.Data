@@ -160,8 +160,12 @@ namespace SSystem.Data
             {
                 Transaction.Dispose();
             }
-            Connection.Close();
-            Connection.Dispose();
+
+            if (Connection != null)
+            {
+                Connection.Close();
+                Connection.Dispose();
+            }
         }
 
         /// <summary>
